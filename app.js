@@ -6,6 +6,7 @@ const app = express();
 
 const PORT = process.env.PORT;
 const MONGO_URI = process.env.MONGO_URI;
+const routes = require("./routes/router");
 
 mongoose
   .connect(MONGO_URI)
@@ -35,11 +36,12 @@ app.use(
 
 app.use(logger("dev"));
 
-app.get("/", (req, res) => {
-  res.status(200).json({
-    message: `Hello from Node backend running in ??Docker! ${PORT} in the docker container??`,
-  });
-});
+app.use("/api", routes);
+// app.get("/", (req, res) => {
+//   res.status(200).json({
+//     message: `Hello from Node backend running in ??Docker! ${PORT} in the docker container??`,
+//   });
+// });
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
