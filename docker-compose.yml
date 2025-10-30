@@ -1,13 +1,16 @@
-version: '3.8'
-
 services:
   backend:
     build: .
     container_name: telecom-form-ahvaan
     ports:
       - "5000:3000"
+    env_file:
+      - .env
     environment:
       - NODE_ENV=development
     volumes:
       - .:/usr/src/app
-      - /usr/src/app/node_modules
+      # - node_modules:/usr/src/app/node_modules
+
+# volumes:
+#   node_modules:
