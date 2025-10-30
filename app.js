@@ -3,6 +3,7 @@ const cors = require("cors");
 const logger = require("morgan");
 const mongoose = require("mongoose");
 const app = express();
+require("dotenv").config();
 
 const PORT = process.env.PORT;
 const MONGO_URI = process.env.MONGO_URI;
@@ -36,13 +37,18 @@ app.use(
 
 app.use(logger("dev"));
 
+// ⭐ YE DO LINES ADD KARO - BAHUT IMPORTANT! ⭐
+app.use(express.json());                    // JSON data parse karne ke liye
+app.use(express.urlencoded({ extended: true }));  // Form data parse karne ke liye
+
 app.use("/api", routes);
-// app.get("/", (req, res) => {
-//   res.status(200).json({
-//     message: `Hello from Node backend running in ??Docker! ${PORT} in the docker container??`,
-//   });
-// });
+
+app.get("/", (req, res) => {
+  res.status(200).json({
+    message: `Jai Shri Ram! Server is running on port ${PORT}`,
+  });
+});
 
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`🚀 Server is running at http://localhost:${PORT}`);
 });
