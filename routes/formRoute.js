@@ -4,8 +4,8 @@ const {
     testController, 
     getAllMembers, 
     createMember, 
-    deleteMember, // यदि आपने इसे पहले जोड़ा है
-    updateMember // अब इसे जोड़ें
+    deleteMember, 
+    updateMember 
 } = require("../controller/formCrud.js");
 
 // Test route

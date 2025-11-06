@@ -37,7 +37,7 @@ app.use(
 
 app.use(logger("dev"));
 
-// ⭐ YE DO LINES ADD KARO - BAHUT IMPORTANT! ⭐
+
 app.use(express.json());                    // JSON data parse karne ke liye
 app.use(express.urlencoded({ extended: true }));  // Form data parse karne ke liye
 
