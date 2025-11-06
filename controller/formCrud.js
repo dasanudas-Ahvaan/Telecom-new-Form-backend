@@ -38,7 +38,7 @@ exports.createMember = async (req, res) => {
     await sendMail(
       email,
       "Welcome ! Your Onboarding is Complete",
-      `Namaste ${name || fullName},\n\nThank you for completing your onboarding form. We are excited to have you as a member !\n\nOur team will review your details and contact you soon.\n\n🚩 Jai Shri Ram!\n— Team Ahvaan-धर्म रक्षा समिति`
+      `Namaste ${name || fullName},\n\nThank you for completing Registration your onboarding form. We are excited to have you as a member !\n\nOur team will review your details and contact you soon.\n\n🚩 Jai Shri Ram!\n— Team Ahvaan-धर्म रक्षा समिति`
     );
 
     res.status(201).json({
