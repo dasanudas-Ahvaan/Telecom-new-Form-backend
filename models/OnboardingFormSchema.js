@@ -44,6 +44,11 @@ const OnboardingFormSchema = new mongoose.Schema(
       type: [String],
       set: (arr) => arr.map((item) => item.trim()),
     },
+    aadhar: {
+      type: String,
+      trim: true,
+      match: /^\d{12}$/,
+    },
   },
   { timestamps: true }
 );
