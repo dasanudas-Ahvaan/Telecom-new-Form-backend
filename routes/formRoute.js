@@ -1,36 +1,40 @@
 const express = require("express");
 const router = express.Router();
-const { 
-    testController, 
-    getAllMembers, 
-    createMember, 
-    deleteMember, 
-    updateMember 
+
+// --- Controllers Import ---
+const {
+  testController,
+  getAllMembers,
+  createMember,
+  deleteMember,
+  updateMember,
+  submitForm, // handles generic form submission + email reply
 } = require("../controller/formCrud.js");
 
-// Test route
-router.get("/test", testController);
-
-// Get all members
-router.get("/members", getAllMembers);
-
-// Create a new member
-router.post("/members", createMember);
-
-// Member ko ID se delete karne ke liye
-
-router.delete("/members/:id", deleteMember); 
-
-// Member को ID से अपडेट करने के लिए
-
-
-router.put("/members/:id", updateMember); 
-// Base route
+// --- Base Route ---
 router.get("/", (req, res) => {
   res.status(200).json({
     success: true,
-    message: "Jai Shri Ram!, you are inside the form router",
+    message: "🚩 Jai Shri Ram!",
   });
 });
+
+// --- Test Route ---
+router.get("/test", testController);
+
+// --- General Form Submission Route ---
+// ✅ This sends email reply after user submits form
+router.post("/form", submitForm);
+
+// --- Member CRUD Routes ---
+router
+  .route("/members")
+  .get(getAllMembers) // Get all members
+  .post(createMember); // Add new member + send welcome email
+
+router
+  .route("/members/:id")
+  .delete(deleteMember) // Delete by ID
+  .put(updateMember); // Update by ID
 
 module.exports = router;
