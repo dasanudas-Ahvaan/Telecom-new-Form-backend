@@ -36,8 +36,8 @@ exports.createMember = async (req, res) => {
     // Send Welcome Email
     await sendMail(
       email,
-      "\nWelcome ! Your Onboarding is Complete",
-      `Namaste ${name || fullName},\nThank you for completing Registration your onboarding form. We are excited to have you as a member !\nOur team will review your details and contact you soon.\n🚩 Jai Shri Ram!\n— Team Ahvaan-धर्म रक्षा समिति`
+      "🚩 आह्वान-धर्म रक्षा समिति में आपका स्वागत है!",
+      `जय श्रीमन नारायण ! ${name || fullName},\n\nधर्म रक्षा के इस अभियान में आपका स्वागत है 🙏\nहमारे WhatsApp समूह से जुड़ें:\n👉 https://chat.whatsapp.com/GrJzFHfKwYR0kcHyeHObs3?mode=wwt\n\n🚩 जय श्री राम!\n— Team Ahvaan-धर्म रक्षा समिति`
     );
 
     res.status(201).json({
@@ -113,27 +113,3 @@ exports.updateMember = async (req, res) => {
   }
 };
 
-//Contact Form + Email Reply
-exports.submitForm = async (req, res) => {
-  try {
-    const { name, email, message } = req.body;
-
-    // Send confirmation mail
-    await sendMail(
-      email,
-      "🚩 आह्वान-धर्म रक्षा समिति में आपका स्वागत है!",
-      `जय श्रीमन नारायण ! ${name},\n\nधर्म रक्षा के इस अभियान में आपका स्वागत है 🙏\nहमारे WhatsApp समूह से जुड़ें:\n👉 https://chat.whatsapp.com/GrJzFHfKwYR0kcHyeHObs3?mode=wwt\n\n🚩 जय श्री राम!\n— Team Ahvaan-धर्म रक्षा समिति`
-    );
-
-    res.status(200).json({
-      success: true,
-      message: "Form submitted successfully and email sent!",
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({
-      success: false,
-      message: "Server error while sending email",
-    });
-  }
-};

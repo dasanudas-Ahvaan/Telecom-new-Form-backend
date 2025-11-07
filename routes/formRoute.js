@@ -8,7 +8,7 @@ const {
   createMember,
   deleteMember,
   updateMember,
-  submitForm, // handles generic form submission + email reply
+  
 } = require("../controller/formCrud.js");
 
 // --- Base Route ---
@@ -21,9 +21,6 @@ router.get("/", (req, res) => {
 
 // --- Test Route ---
 router.get("/test", testController);
-
-// --- Generic Form Submission Route ---
-router.post("/form", submitForm);
 
 // --- Member CRUD Routes ---
 router
