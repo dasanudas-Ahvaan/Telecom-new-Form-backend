@@ -22,15 +22,14 @@ router.get("/", (req, res) => {
 // --- Test Route ---
 router.get("/test", testController);
 
-// --- General Form Submission Route ---
-// ✅ This sends email reply after user submits form
+// --- Generic Form Submission Route ---
 router.post("/form", submitForm);
 
 // --- Member CRUD Routes ---
 router
   .route("/members")
-  .get(getAllMembers) // Get all members
-  .post(createMember); // Add new member + send welcome email
+  .get(getAllMembers) 
+  .post(createMember); 
 
 router
   .route("/members/:id")

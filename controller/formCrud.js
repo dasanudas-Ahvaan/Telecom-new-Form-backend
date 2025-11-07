@@ -1,7 +1,7 @@
 const { Member } = require("../models/OnboardingFormSchema.js");
 const sendMail = require("../utils/mailers.js");
 
-// ✅ Test Controller
+// Test Controller
 exports.testController = (req, res) => {
   res.status(200).json({
     success: true,
@@ -9,7 +9,7 @@ exports.testController = (req, res) => {
   });
 };
 
-// ✅ Fetch All Members
+// Fetch All Members
 exports.getAllMembers = async (req, res) => {
   try {
     const members = await Member.find();
@@ -26,7 +26,6 @@ exports.getAllMembers = async (req, res) => {
   }
 };
 
-// ✅ Create New Member + Send Email
 exports.createMember = async (req, res) => {
   try {
     const { email, name , fullName} = req.body;
@@ -37,8 +36,8 @@ exports.createMember = async (req, res) => {
     // Send Welcome Email
     await sendMail(
       email,
-      "Welcome ! Your Onboarding is Complete",
-      `Namaste ${name || fullName},\n\nThank you for completing Registration your onboarding form. We are excited to have you as a member !\n\nOur team will review your details and contact you soon.\n\n🚩 Jai Shri Ram!\n— Team Ahvaan-धर्म रक्षा समिति`
+      "\nWelcome ! Your Onboarding is Complete",
+      `Namaste ${name || fullName},\nThank you for completing Registration your onboarding form. We are excited to have you as a member !\nOur team will review your details and contact you soon.\n🚩 Jai Shri Ram!\n— Team Ahvaan-धर्म रक्षा समिति`
     );
 
     res.status(201).json({
@@ -55,7 +54,7 @@ exports.createMember = async (req, res) => {
   }
 };
 
-// ✅ Delete Member
+//Delete Member
 exports.deleteMember = async (req, res) => {
   try {
     const memberId = req.params.id;
@@ -82,7 +81,7 @@ exports.deleteMember = async (req, res) => {
   }
 };
 
-// ✅ Update Member
+//Update Member
 exports.updateMember = async (req, res) => {
   try {
     const memberId = req.params.id;
@@ -114,7 +113,7 @@ exports.updateMember = async (req, res) => {
   }
 };
 
-// ✅ Contact Form + Email Reply
+//Contact Form + Email Reply
 exports.submitForm = async (req, res) => {
   try {
     const { name, email, message } = req.body;
@@ -123,7 +122,7 @@ exports.submitForm = async (req, res) => {
     await sendMail(
       email,
       "🚩 आह्वान-धर्म रक्षा समिति में आपका स्वागत है!",
-      `जय श्रीमन्नारायण! ${name},\n\nधर्म रक्षा के इस अभियान में आपका स्वागत है 🙏\nहमारे WhatsApp समूह से जुड़ें:\n👉 https://chat.whatsapp.com/GrJzFHfKwYR0kcHyeHObs3?mode=wwt\n\n🚩 जय श्री राम!\n— Team Ahvaan-धर्म रक्षा समिति`
+      `जय श्रीमन नारायण ! ${name},\n\nधर्म रक्षा के इस अभियान में आपका स्वागत है 🙏\nहमारे WhatsApp समूह से जुड़ें:\n👉 https://chat.whatsapp.com/GrJzFHfKwYR0kcHyeHObs3?mode=wwt\n\n🚩 जय श्री राम!\n— Team Ahvaan-धर्म रक्षा समिति`
     );
 
     res.status(200).json({
