@@ -25,34 +25,72 @@ exports.getAllMembers = async (req, res) => {
     });
   }
 };
-
+//create Member
 exports.createMember = async (req, res) => {
   try {
-    const { email, name , fullName} = req.body;
+    const { email, name, fullName, phone } = req.body;
 
+    //Field Validation
+    if (!email || !name && !fullName) {
+      return res.status(400).json({
+        success: false,
+        message: "Name and email are required fields",
+      });
+    }
+
+    //Email Format Validation (simple regex)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide a valid email address",
+      });
+    }
+
+    //Optional: Phone number validation
+    if (phone && !/^[6-9]\d{9}$/.test(phone)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Indian phone number",
+      });
+    }
+
+    //Check for Duplicate Email
+    const existingMember = await Member.findOne({ email });
+    if (existingMember) {
+      return res.status(400).json({
+        success: false,
+        message: "This email is already registered",
+      });
+    }
+
+    // Create New Member
     const newMember = new Member(req.body);
     const savedMember = await newMember.save();
 
-    // Send Welcome Email
+    //Send Welcome Email
     await sendMail(
       email,
       "🚩 आह्वान-धर्म रक्षा समिति में आपका स्वागत है!",
       `जय श्रीमन नारायण ! ${name || fullName},\n\nधर्म रक्षा के इस अभियान में आपका स्वागत है 🙏\nहमारे WhatsApp समूह से जुड़ें:\n👉 https://chat.whatsapp.com/GrJzFHfKwYR0kcHyeHObs3?mode=wwt\n\n🚩 जय श्री राम!\n— Team Ahvaan-धर्म रक्षा समिति`
     );
 
+    //Success Response
     res.status(201).json({
       success: true,
       message: "Member created successfully and confirmation email sent!",
       data: savedMember,
     });
   } catch (error) {
-    res.status(400).json({
+    console.error("Error in createMember:", error);
+    res.status(500).json({
       success: false,
       message: "Error creating member",
       error: error.message,
     });
   }
 };
+
 
 //Delete Member
 exports.deleteMember = async (req, res) => {
@@ -87,6 +125,36 @@ exports.updateMember = async (req, res) => {
     const memberId = req.params.id;
     const updateData = req.body;
 
+    const restrictedFields = ["_id", "createdAt", "memberId"];
+    for (let field of restrictedFields) {
+      if (updateData[field]) delete updateData[field];
+    }
+
+    if (updateData.email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(updateData.email)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid email format",
+        });
+      }
+
+      const existingMember = await Member.findOne({ email: updateData.email });
+      if (existingMember && existingMember._id.toString() !== memberId) {
+        return res.status(400).json({
+          success: false,
+          message: "Email already in use by another member",
+        });
+      }
+    }
+
+    if (updateData.phone && !/^[6-9]\d{9}$/.test(updateData.phone)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Indian phone number",
+      });
+    }
+
     const updatedMember = await Member.findByIdAndUpdate(memberId, updateData, {
       new: true,
       runValidators: true,
@@ -112,4 +180,35 @@ exports.updateMember = async (req, res) => {
     });
   }
 };
+
+
+// Get Member by ID
+exports.getMemberById = async (req, res) => {
+  try {
+    const memberId = req.params.id;
+
+    const member = await Member.findById(memberId);
+
+    if (!member) {
+      return res.status(404).json({
+        success: false,
+        message: "Member not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Member fetched successfully",
+      data: member,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch member",
+      error: error.message,
+    });
+  }
+};
+
+
 

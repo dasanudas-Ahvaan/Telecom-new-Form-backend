@@ -8,6 +8,8 @@ const {
   createMember,
   deleteMember,
   updateMember,
+  getMemberById,
+  
   
 } = require("../controller/formCrud.js");
 
@@ -30,6 +32,7 @@ router
 
 router
   .route("/members/:id")
+  .get(getMemberById) // Get by ID
   .delete(deleteMember) // Delete by ID
   .put(updateMember); // Update by ID
 
