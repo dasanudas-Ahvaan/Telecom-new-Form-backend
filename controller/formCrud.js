@@ -1,17 +1,14 @@
+const { default: mongoose } = require("mongoose");
 const { Member } = require("../models/OnboardingFormSchema.js");
 const sendMail = require("../utils/mailers.js");
-
-
+const Counter = require("../models/counter.js");
 
 exports.testController = (req, res) => {
-  
   res.status(200).json({
     success: true,
     message: "Form controller is working properly",
   });
 };
-
-
 
 exports.getAllMembers = async (req, res) => {
   try {
@@ -30,13 +27,57 @@ exports.getAllMembers = async (req, res) => {
 };
 
 exports.createMember = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
-    const { email,fullName, phone } = req.body;
+    const {
+      email,
+      fullName,
+      phone,
+      gender,
+      dateOfBirth,
+      education,
+      profession,
+      addressLine1,
+      addressLine2,
+      pincode,
+      city,
+      state,
+      country,
+      previousAssociations,
+      volunteerPrograms,
+      aadhar,
+      extraFields,
+    } = req.body;
 
-    if (!email ||!fullName) {
+    const allFields = {
+      email,
+      fullName,
+      phone,
+      gender,
+      dateOfBirth,
+      education,
+      profession,
+      addressLine1,
+      addressLine2,
+      pincode,
+      city,
+      state,
+      country,
+      previousAssociations,
+      volunteerPrograms,
+      aadhar,
+      extraFields,
+    };
+
+    const missingFields = Object.keys(allFields).filter(
+      (key) => !allFields[key]
+    );
+
+    if (missingFields.length > 0) {
       return res.status(400).json({
         success: false,
-        message: "Name and email are required fields",
+        message: `Missing required fields: ${missingFields.join(", ")}`,
       });
     }
 
@@ -55,17 +96,30 @@ exports.createMember = async (req, res) => {
       });
     }
 
-    const existingMember = await Member.findOne({ email });
+    const existingMember = await Member.findOne({ email }).session(session);
     if (existingMember) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({
         success: false,
         message: "This email is already registered",
       });
     }
-    
-    const newMember = new Member(req.body);
-    const savedMember = await newMember.save();
 
+    const counter = await Counter.findByIdAndUpdate(
+      { _id: "member_id" },
+      { $inc: { seq: 1 }, $setOnInsert: { collectionName: "members" } },
+      { new: true, upsert: true, session }
+    );
+
+    const paddedId = String(counter.seq).padStart(5, "0");
+    const memberId = "AHVN" + paddedId;
+
+    const newMember = new Member({ _id: memberId, ...req.body });
+    const savedMember = await newMember.save({ session });
+
+    await session.commitTransaction();
+    session.endSession();
     await sendMail(
       email,
       "🚩 आह्वान-धर्म रक्षा समिति में आपका स्वागत है!",
@@ -98,7 +152,6 @@ exports.createMember = async (req, res) => {
     });
   }
 };
-
 
 exports.deleteMember = async (req, res) => {
   try {
@@ -187,7 +240,6 @@ exports.updateMember = async (req, res) => {
   }
 };
 
-
 exports.getMemberById = async (req, res) => {
   try {
     const memberId = req.params.id;
@@ -214,6 +266,3 @@ exports.getMemberById = async (req, res) => {
     });
   }
 };
-
-
-

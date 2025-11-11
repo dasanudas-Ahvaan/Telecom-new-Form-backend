@@ -15,6 +15,7 @@ const OnboardingFormSchema = new mongoose.Schema(
     isVerified: {
       type: Boolean,
       required: true,
+      default: false,
     },
     fullName: {
       type: String,
@@ -76,31 +77,6 @@ const OnboardingFormSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
-
-OnboardingFormSchema.pre("save", async function (next) {
-  const doc = this;
-
-  if (!doc.isNew) {
-    return next();
-  }
-
-  try {
-    const counter = await Counter.findByIdAndUpdate(
-      { _id: "member_id" },
-      { $inc: { seq: 1 }, $setOnInsert: { collectionName: "members" } },
-      { new: true, upsert: true }
-    );
-
-    const paddedId = String(counter.seq).padStart(5, "0");
-
-    doc._id = "AHVN" + paddedId;
-
-    next();
-  } catch (error) {
-    console.error("Custom ID generation failed:", error);
-    next(error);
-  }
-});
 
 const Member = mongoose.model("Member", OnboardingFormSchema);
 module.exports = { Member };
