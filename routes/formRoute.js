@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
 
-// --- Controllers Import ---
 const {
   testController,
   getAllMembers,
@@ -13,7 +12,6 @@ const {
   
 } = require("../controller/formCrud.js");
 
-// --- Base Route ---
 router.get("/", (req, res) => {
   res.status(200).json({
     success: true,
@@ -21,19 +19,16 @@ router.get("/", (req, res) => {
   });
 });
 
-// --- Test Route ---
 router.get("/test", testController);
 
-// --- Member CRUD Routes ---
 router
   .route("/members")
-  .get(getAllMembers) 
   .post(createMember); 
 
 router
   .route("/members/:id")
-  .get(getMemberById) // Get by ID
-  .delete(deleteMember) // Delete by ID
-  .put(updateMember); // Update by ID
+  .get(getMemberById) 
+  .delete(deleteMember) 
+  .put(updateMember);
 
 module.exports = router;

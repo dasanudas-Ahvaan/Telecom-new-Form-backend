@@ -38,8 +38,8 @@ app.use(
 app.use(logger("dev"));
 
 
-app.use(express.json());                    // JSON data parse karne ke liye
-app.use(express.urlencoded({ extended: true }));  // Form data parse karne ke liye
+app.use(express.json());                    
+app.use(express.urlencoded({ extended: true }));  
 
 app.use("/api", routes);
 

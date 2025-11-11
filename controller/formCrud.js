@@ -3,7 +3,6 @@ const sendMail = require("../utils/mailers.js");
 
 
 
-// Test Controller
 exports.testController = (req, res) => {
   
   res.status(200).json({
@@ -12,7 +11,8 @@ exports.testController = (req, res) => {
   });
 };
 
-// Fetch All Members
+
+
 exports.getAllMembers = async (req, res) => {
   try {
     const members = await Member.find();
@@ -28,12 +28,11 @@ exports.getAllMembers = async (req, res) => {
     });
   }
 };
-//create Member
+
 exports.createMember = async (req, res) => {
   try {
     const { email,fullName, phone } = req.body;
 
-    //Field Validation
     if (!email ||!fullName) {
       return res.status(400).json({
         success: false,
@@ -41,7 +40,6 @@ exports.createMember = async (req, res) => {
       });
     }
 
-    //Email Format Validation (simple regex)
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return res.status(400).json({
@@ -50,7 +48,6 @@ exports.createMember = async (req, res) => {
       });
     }
 
-    //Optional: Phone number validation
     if (phone && !/^[6-9]\d{9}$/.test(phone)) {
       return res.status(400).json({
         success: false,
@@ -58,7 +55,6 @@ exports.createMember = async (req, res) => {
       });
     }
 
-    //Check for Duplicate Email
     const existingMember = await Member.findOne({ email });
     if (existingMember) {
       return res.status(400).json({
@@ -66,12 +62,10 @@ exports.createMember = async (req, res) => {
         message: "This email is already registered",
       });
     }
-
-    // Create New Member
+    
     const newMember = new Member(req.body);
     const savedMember = await newMember.save();
 
-    //Send Welcome Email
     await sendMail(
       email,
       "🚩 आह्वान-धर्म रक्षा समिति में आपका स्वागत है!",
@@ -90,7 +84,6 @@ exports.createMember = async (req, res) => {
   </div>`
     );
 
-    //Success Response
     res.status(201).json({
       success: true,
       message: "Member created successfully and confirmation email sent!",
@@ -107,7 +100,6 @@ exports.createMember = async (req, res) => {
 };
 
 
-//Delete Member
 exports.deleteMember = async (req, res) => {
   try {
     const memberId = req.params.id;
@@ -134,7 +126,6 @@ exports.deleteMember = async (req, res) => {
   }
 };
 
-//Update Member
 exports.updateMember = async (req, res) => {
   try {
     const memberId = req.params.id;
@@ -197,7 +188,6 @@ exports.updateMember = async (req, res) => {
 };
 
 
-// Get Member by ID
 exports.getMemberById = async (req, res) => {
   try {
     const memberId = req.params.id;
