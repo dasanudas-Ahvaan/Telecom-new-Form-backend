@@ -31,10 +31,10 @@ exports.getAllMembers = async (req, res) => {
 //create Member
 exports.createMember = async (req, res) => {
   try {
-    const { email, name, fullName, phone } = req.body;
+    const { email,fullName, phone } = req.body;
 
     //Field Validation
-    if (!email || !name && !fullName) {
+    if (!email ||!fullName) {
       return res.status(400).json({
         success: false,
         message: "Name and email are required fields",
@@ -80,10 +80,12 @@ exports.createMember = async (req, res) => {
          alt="आह्वान-धर्म रक्षा समिति"
          style="max-width:100%; border-radius:10px;"/>
     <h2 style="color:#d32f2f; margin-top:20px;">🙏 आपका हार्दिक स्वागत है 🙏</h2>
-    <p style="font-size:16px; color:#444;">
-      धर्म रक्षा के इस अभियान में जुड़ने हेतु <b>आपका धन्यवाद</b>। ${name||fullName} जी,
-      आपका प्रत्येक कदम सनातन की रक्षा में एक नई शक्ति जोड़ता है।
-    </p>
+   <p style="font-size:16px; color:#444;">
+  <b>${fullName} जी,</b>
+  <br><br>
+  धर्म रक्षा और सेवा के इस पुनीत अभियान में स्वेच्छा से जुड़ने के लिए **हम हृदय से आपके आभारी हैं**।
+  आपका यह समर्पित सहयोग, सनातन धर्म और राष्ट्र की सेवा के हमारे सामूहिक लक्ष्य को एक नई दिशा और **अभूतपूर्व बल** प्रदान करता है। हम आपके सक्रिय योगदान की प्रतीक्षा कर रहे हैं।
+</p>
     <p style="margin-top:20px; color:#555;">🚩 जय श्री राम!<br>— Team आह्वान-धर्म रक्षा समिति</p>
   </div>`
     );
