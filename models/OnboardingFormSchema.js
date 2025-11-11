@@ -65,6 +65,10 @@ const OnboardingFormSchema = new mongoose.Schema(
     },
     extraFields: {
       type: Schema.Types.Mixed,
+      validate: {
+        validator: (v) => typeof v === "object" && !Array.isArray(v),
+        message: "extraFields must be an object",
+      },
     },
   },
   {
