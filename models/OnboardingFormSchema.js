@@ -87,7 +87,7 @@ OnboardingFormSchema.pre("save", async function (next) {
   try {
     const counter = await Counter.findByIdAndUpdate(
       { _id: "member_id" },
-      { $inc: { seq: 1 } },
+      { $inc: { seq: 1 }, $setOnInsert: { collectionName: "members" } },
       { new: true, upsert: true }
     );
 
