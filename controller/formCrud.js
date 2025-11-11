@@ -1,8 +1,11 @@
 const { Member } = require("../models/OnboardingFormSchema.js");
 const sendMail = require("../utils/mailers.js");
 
+
+
 // Test Controller
 exports.testController = (req, res) => {
+  
   res.status(200).json({
     success: true,
     message: "Form controller is working properly",
@@ -72,7 +75,17 @@ exports.createMember = async (req, res) => {
     await sendMail(
       email,
       "🚩 आह्वान-धर्म रक्षा समिति में आपका स्वागत है!",
-      `जय श्रीमन नारायण ! ${name || fullName},\n\nधर्म रक्षा के इस अभियान में आपका स्वागत है 🙏\nहमारे WhatsApp समूह से जुड़ें:\n👉 https://chat.whatsapp.com/GrJzFHfKwYR0kcHyeHObs3?mode=wwt\n\n🚩 जय श्री राम!\n— Team Ahvaan-धर्म रक्षा समिति`
+      `<div style="text-align:center; font-family: 'Noto Sans Devanagari', sans-serif; background-color:#fff8e1; padding:20px;">
+    <img src="cid:logoImage"
+         alt="आह्वान-धर्म रक्षा समिति"
+         style="max-width:100%; border-radius:10px;"/>
+    <h2 style="color:#d32f2f; margin-top:20px;">🙏 आपका हार्दिक स्वागत है 🙏</h2>
+    <p style="font-size:16px; color:#444;">
+      धर्म रक्षा के इस अभियान में जुड़ने हेतु <b>आपका धन्यवाद</b>। ${name||fullName} जी,
+      आपका प्रत्येक कदम सनातन की रक्षा में एक नई शक्ति जोड़ता है।
+    </p>
+    <p style="margin-top:20px; color:#555;">🚩 जय श्री राम!<br>— Team आह्वान-धर्म रक्षा समिति</p>
+  </div>`
     );
 
     //Success Response

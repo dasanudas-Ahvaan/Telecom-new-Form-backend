@@ -1,7 +1,7 @@
 const nodemailer = require("nodemailer");
 require("dotenv").config();
 
-const sendMail = async (to, subject, text) => {
+const sendMail = async (to, subject, html) => {
   try {
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -15,7 +15,14 @@ const sendMail = async (to, subject, text) => {
       from: process.env.EMAIL_USER,
       to,
       subject,
-      text,
+      html,
+      attachments: [
+        {
+          filename: "logo.jpg",
+          path: "./assets/logo.jpg",
+          cid: "logoImage", 
+        },
+      ],
     };
 
     await transporter.sendMail(mailOptions);
