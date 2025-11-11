@@ -1,0 +1,32 @@
+POST http://localhost:3000/api/form/members 
+Content-Type: application/json
+
+{
+  "fullName": "Sushant Varma",
+  "email": "kr.pushpesh1@gmail.com",
+  "phone": "9911223344",
+  "gender": "male",
+  "dateOfBirth": "1994-01-20T00:00:00.000Z",
+  "education": "M.Sc (Environmental Science)",
+  "profession": "Environmental Consultant",
+  "addressLine1": "Plot No 45, Sector 15",
+  "addressLine2": "Dwarka",
+  "pincode": "110075",
+  "city": "New Delhi",
+  "state": "Delhi",
+  "country": "India",
+  "previousAssociations": "Wildlife Conservation Society",
+  "volunteerPrograms": [
+    "Environmental Awareness",
+    "Health & Hygiene",
+    "Education Support"
+  ]
+} 
+### Expected Response
+HTTP/1.1 201 Created
+Content-Type: application/json
+
+{
+  "message": "Member created successfully",
+  "memberId": "generated-member-id"
+}
