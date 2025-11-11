@@ -6,6 +6,16 @@ const OnboardingFormSchema = new mongoose.Schema(
     _id: {
       type: String,
     },
+    status: {
+      type: String,
+      required: true,
+      enum: ["active", "inactive"],
+      default: "active",
+    },
+    isVerified: {
+      type: Boolean,
+      required: true,
+    },
     fullName: {
       type: String,
       required: true,
@@ -52,6 +62,9 @@ const OnboardingFormSchema = new mongoose.Schema(
       type: String,
       trim: true,
       match: /^\d{12}$/,
+    },
+    extraFields: {
+      type: Schema.Types.Mixed,
     },
   },
   {
