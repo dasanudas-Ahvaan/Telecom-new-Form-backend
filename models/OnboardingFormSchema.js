@@ -1,14 +1,18 @@
 const mongoose = require("mongoose");
+const Counter = require("../models/counter.js");
 
 const OnboardingFormSchema = new mongoose.Schema(
   {
+    _id: {
+      type: String,
+    },
     fullName: {
       type: String,
       required: true,
       trim: true,
       minlength: 3,
       maxlength: 100,
-      match: /^[a-zA-Z\s]+$/, // only letters & spaces
+      match: /^[a-zA-Z\s]+$/,
     },
     email: {
       type: String,
@@ -22,7 +26,7 @@ const OnboardingFormSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
-      match: /^\d{10}$/, //Format: (e.g., 9855245639 for India 10 digits).
+      match: /^\d{10}$/,
     },
     gender: {
       type: String,
@@ -50,9 +54,36 @@ const OnboardingFormSchema = new mongoose.Schema(
       match: /^\d{12}$/,
     },
   },
-  { timestamps: true }
+  {
+    _id: false,
+    timestamps: true,
+  }
 );
 
-const Member = mongoose.model("Member", OnboardingFormSchema);
+OnboardingFormSchema.pre("save", async function (next) {
+  const doc = this;
 
+  if (!doc.isNew) {
+    return next();
+  }
+
+  try {
+    const counter = await Counter.findByIdAndUpdate(
+      { _id: "member_id" },
+      { $inc: { seq: 1 } },
+      { new: true, upsert: true }
+    );
+
+    const paddedId = String(counter.seq).padStart(5, "0");
+
+    doc._id = "AHVN" + paddedId;
+
+    next();
+  } catch (error) {
+    console.error("Custom ID generation failed:", error);
+    next(error);
+  }
+});
+
+const Member = mongoose.model("Member", OnboardingFormSchema);
 module.exports = { Member };
