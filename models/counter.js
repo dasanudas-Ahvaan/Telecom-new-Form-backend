@@ -3,12 +3,16 @@ const mongoose = require("mongoose");
 const CounterSchema = new mongoose.Schema({
   _id: {
     type: String,
-    required: true
+    required: true,
   },
   seq: {
     type: Number,
-    default: 0
-  }
+    default: 0,
+  },
+  collectionName: {
+    type: String,
+    required: true,
+  },
 });
 
 const Counter = mongoose.model("Counter", CounterSchema);
