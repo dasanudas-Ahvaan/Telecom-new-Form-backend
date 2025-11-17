@@ -14,7 +14,7 @@ function validateSuperUser(req, res) {
     return res.status(403).json({
       success: false,
       message:
-        "Access denied. You are not authorized to modify this user's team.",
+        "Access denied. Unauthorized.",
     });
   }
 
