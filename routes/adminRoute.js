@@ -7,7 +7,7 @@ const {
 const {
   getAllMembers,
   updateMember,
-  deleteMember,
+  deactivateMember,
 } = require("../controller/formCrud");
 const { verifyToken } = require("../middleware/auth");
 const router = express.Router();
@@ -20,7 +20,8 @@ router
   .route("/:id")
   .get(verifyToken, getAllMembers)
   .put(verifyToken, updateMember)
-  .delete(verifyToken, deleteMember)
+  .delete(verifyToken, deactivateMember)
   .post(verifyToken, createAdmin);
 
-  //improve above 3 blue controllers then test
+module.exports = router;
+//improve above 3 blue controllers then test
