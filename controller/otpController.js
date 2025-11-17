@@ -20,13 +20,27 @@ const sendOTP = async (req, res) => {
       });
     }
 
-    await EmailOTP.findOneAndDelete({ email }); // remove old OTP
+    const existingOTP = await EmailOTP.findOne({ email });
+    const now = Date.now();
+    //logical rate limit
+    if (existingOTP) {
+      if (now - existingOTP.createdAt.getTime() < 5 * 60 * 1000) {
+        return res.status(429).json({
+          success: false,
+          message: "OTP already sent. Please wait 5 minutes before retrying.",
+        });
+      }
+      await EmailOTP.findOneAndDelete({ email });
+    }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const hashedOtp = crypto.createHash("sha256").update(otp).digest("hex");
+
     await EmailOTP.create({
       email,
-      otp,
-      expiresAt: Date.now() + 5 * 60 * 1000,
+      otp: hashedOtp,
+      expiresAt: Date.now() + 5 * 60 * 1000, // 5 minutes
+      createdAt: new Date(),
     });
 
     await sendMail(
@@ -43,26 +57,24 @@ const sendOTP = async (req, res) => {
 };
 
 const verifyOTP = async (req, res) => {
-  try {
-    const { email, otp } = req.body;
+  const { email, otp } = req.body;
 
-    const record = await EmailOTP.findOne({ email });
-
-    if (!record)
-      return res.status(400).json({ success: false, message: "OTP not found" });
-
-    if (record.expiresAt < Date.now())
-      return res.status(400).json({ success: false, message: "OTP expired" });
-
-    if (record.otp !== otp)
-      return res.status(400).json({ success: false, message: "Invalid OTP" });
-
-    record.verified = true;
-    await record.save();
-
-    return res.json({ success: true, message: "OTP verified" });
-  } catch (error) {
-    res.status(500).json({ success: false, message: "Error verifying OTP" });
+  if (!email || !otp) {
+    return res.status(400).json({ message: "Email and OTP required" });
   }
+
+  const hashedOtp = crypto.createHash("sha256").update(otp).digest("hex");
+
+  const record = await EmailOTP.findOne({
+    email,
+    otp: hashedOtp,
+    expiresAt: { $gt: Date.now() },
+  });
+
+  if (!record)
+    return res.status(400).json({ message: "Invalid or expired OTP" });
+  record.verified = true;
+  await record.save();
+  res.json({ success: true, message: "OTP verified successfully" });
 };
 module.exports = { sendOTP, verifyOTP };
