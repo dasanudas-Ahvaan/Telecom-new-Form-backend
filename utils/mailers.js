@@ -20,15 +20,18 @@ const sendMail = async (to, subject, html) => {
         {
           filename: "logo.jpg",
           path: "./assets/logo.jpg",
-          cid: "logoImage", 
+          cid: "logoImage",
         },
       ],
     };
 
     await transporter.sendMail(mailOptions);
+
     console.log("✅ Email sent to:", to);
+    return { success: true, message: "Email sent successfully" };
   } catch (error) {
     console.error("❌ Email Error:", error.message);
+    return { success: false, message: error.message };
   }
 };
 
