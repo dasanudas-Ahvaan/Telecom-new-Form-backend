@@ -129,7 +129,7 @@ exports.createMember = async (req, res) => {
 
     await session.commitTransaction();
     session.endSession();
-    await sendMail(
+    const emailSent = await sendMail(
       email,
       "🚩 आह्वान-धर्म रक्षा समिति में आपका स्वागत है!",
       `<div style="text-align:center; font-family: 'Noto Sans Devanagari', sans-serif; background-color:#fff8e1; padding:20px;">
@@ -151,8 +151,15 @@ exports.createMember = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: "Member created successfully and confirmation email sent!",
       data: savedMember,
+      ...(emailSent.response
+        ? {
+            message: "Member created successfully and confirmation email sent!",
+          }
+        : {
+            message:
+              "Confirmation email NOT sent. Member created successfully!",
+          }),
     });
   } catch (error) {
     console.error("Error in createMember:", error);
@@ -198,27 +205,9 @@ exports.updateMember = async (req, res) => {
     const memberId = req.params.id;
     const updateData = req.body;
 
-    const restrictedFields = ["_id", "createdAt", "memberId"];
+    const restrictedFields = ["_id", "createdAt", "memberId","email"];
     for (let field of restrictedFields) {
       if (updateData[field]) delete updateData[field];
-    }
-
-    if (updateData.email) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(updateData.email)) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid email format",
-        });
-      }
-
-      const existingMember = await Member.findOne({ email: updateData.email });
-      if (existingMember && existingMember._id.toString() !== memberId) {
-        return res.status(400).json({
-          success: false,
-          message: "Email already in use by another member",
-        });
-      }
     }
 
     if (updateData.phone && !/^[6-9]\d{9}$/.test(updateData.phone)) {
@@ -228,14 +217,10 @@ exports.updateMember = async (req, res) => {
       });
     }
 
-    const updatedMember = await Member.findByIdAndUpdate(
-      { _id: memberId },
-      updateData,
-      {
-        new: true,
-        runValidators: true,
-      }
-    );
+    const updatedMember = await Member.findByIdAndUpdate(memberId, updateData, {
+      new: true,
+      runValidators: true,
+    });
 
     if (!updatedMember) {
       return res.status(404).json({
