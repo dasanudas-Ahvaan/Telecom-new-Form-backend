@@ -20,15 +20,9 @@ router.get("/", (req, res) => {
 
 router.get("/test", testController);
 
-router.route("/members").post(createMember);
+router.post("/members", createMember);
 
 router.post("/otp", otpLimiter, sendOTP);
 router.post("/votp", verifyOTP);
-
-// router
-//   .route("/members/:id")
-//   .get(getMemberById)
-//   .delete(deleteMember)
-//   .put(updateMember);
 
 module.exports = router;
