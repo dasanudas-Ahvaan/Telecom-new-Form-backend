@@ -2,6 +2,7 @@ const { default: mongoose } = require("mongoose");
 const { Member } = require("../models/OnboardingFormSchema.js");
 const sendMail = require("../utils/mailers.js");
 const Counter = require("../models/counter.js");
+const { EmailOTP } = require("../models/otpSchema.js");
 
 exports.testController = (req, res) => {
   res.status(200).json({
@@ -27,6 +28,14 @@ exports.getAllMembers = async (req, res) => {
 };
 
 exports.createMember = async (req, res) => {
+  const otpRecord = await EmailOTP.findOne({ email: req.body.email });
+
+  if (!otpRecord || !otpRecord.verified) {
+    return res.status(400).json({
+      success: false,
+      message: "Email not verified. Please verify email first.",
+    });
+  }
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
@@ -137,6 +146,8 @@ exports.createMember = async (req, res) => {
     <p style="margin-top:20px; color:#555;">🚩 जय श्री राम!<br>— Team आह्वान-धर्म रक्षा समिति</p>
   </div>`
     );
+
+    await EmailOTP.deleteOne({ email });
 
     res.status(201).json({
       success: true,

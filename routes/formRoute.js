@@ -25,10 +25,10 @@ router
   .route("/members")
   .post(createMember); 
 
-router
-  .route("/members/:id")
-  .get(getMemberById) 
-  .delete(deleteMember) 
-  .put(updateMember);
+// router
+//   .route("/members/:id")
+//   .get(getMemberById) 
+//   .delete(deleteMember) 
+//   .put(updateMember);
 
 module.exports = router;

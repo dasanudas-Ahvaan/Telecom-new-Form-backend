@@ -1,4 +1,4 @@
-const Admin = require("../models/adminSchema.js");
+const { Admin } = require("../models/adminSchema.js");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { generateToken } = require("../middleware/auth.js");
@@ -67,7 +67,7 @@ const createAdmin = async (req, res) => {
     }
     let user = await Admin.findOne({ email });
     if (user) {
-      return res.status(201).json({
+      return res.status(409).json({
         success: false,
         message: "User alreay exists with this email",
       });
@@ -75,6 +75,7 @@ const createAdmin = async (req, res) => {
       user = await Admin.create({
         email,
         password,
+        role: "admin",
       });
     }
     let userObj = user.toObject();
@@ -86,7 +87,7 @@ const createAdmin = async (req, res) => {
     console.error("Error:", error);
     return res.status(500).json({
       success: false,
-      message: "Error while onboarding",
+      message: "Error while creating admin",
       error: error?.message,
     });
   }

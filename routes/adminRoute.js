@@ -22,3 +22,5 @@ router
   .put(verifyToken, updateMember)
   .delete(verifyToken, deleteMember)
   .post(verifyToken, createAdmin);
+
+  //improve above 3 blue controllers then test
