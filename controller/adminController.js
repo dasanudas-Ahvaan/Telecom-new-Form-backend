@@ -80,9 +80,14 @@ const createAdmin = async (req, res) => {
     }
     let userObj = user.toObject();
     delete userObj.password;
+    delete userObj.role;
+    delete userObj._id;
+    delete userObj.createdAt;
+    delete userObj.updatedAt;
+    delete userObj.__v;
     return res
       .status(200)
-      .json({ success: true, message: "Admin user created", user: userObj });
+      .json({ success: true, message: "Admin user created", data: userObj });
   } catch (error) {
     console.error("Error:", error);
     return res.status(500).json({
