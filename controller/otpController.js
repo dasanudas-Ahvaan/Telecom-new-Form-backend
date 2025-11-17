@@ -1,7 +1,7 @@
-const { default: mongoose } = require("mongoose");
 const { Member } = require("../models/OnboardingFormSchema.js");
 const sendMail = require("../utils/mailers.js");
 const { EmailOTP } = require("../models/otpSchema.js");
+const crypto = require("crypto");
 
 const sendOTP = async (req, res) => {
   try {
@@ -35,6 +35,7 @@ const sendOTP = async (req, res) => {
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const hashedOtp = crypto.createHash("sha256").update(otp).digest("hex");
+    console.log("This is your OTP>>", otp);
 
     await EmailOTP.create({
       email,
@@ -43,13 +44,17 @@ const sendOTP = async (req, res) => {
       createdAt: new Date(),
     });
 
-    await sendMail(
+    const response = await sendMail(
       email,
       "Your OTP Verification Code",
       `<h3>Your OTP is: <b>${otp}</b></h3>`
     );
 
-    res.json({ success: true, message: "OTP sent to email" });
+    res.status(200).json({
+      ...(response.success
+        ? { success: true, message: "OTP sent to email" }
+        : { success: true, message: "OTP generated but failed to send OTP to email" }),
+    });
   } catch (error) {
     console.log("OTP Error:", error);
     res.status(500).json({ success: false, message: "Error sending OTP" });
