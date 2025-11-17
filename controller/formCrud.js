@@ -164,10 +164,14 @@ exports.createMember = async (req, res) => {
   }
 };
 
-exports.deleteMember = async (req, res) => {
+exports.deactivateMember = async (req, res) => {
   try {
     const memberId = req.params.id;
-    const deletedMember = await Member.findByIdAndDelete(memberId);
+    const deletedMember = await Member.findOneAndUpdate(
+      { _id: memberId },
+      { status: "inactive" },
+      { new: true }
+    );
 
     if (!deletedMember) {
       return res.status(404).json({
@@ -179,7 +183,6 @@ exports.deleteMember = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Member deleted successfully",
-      data: deletedMember,
     });
   } catch (error) {
     res.status(500).json({
@@ -225,10 +228,14 @@ exports.updateMember = async (req, res) => {
       });
     }
 
-    const updatedMember = await Member.findByIdAndUpdate(memberId, updateData, {
-      new: true,
-      runValidators: true,
-    });
+    const updatedMember = await Member.findByIdAndUpdate(
+      { _id: memberId },
+      updateData,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
 
     if (!updatedMember) {
       return res.status(404).json({
