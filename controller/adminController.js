@@ -35,8 +35,11 @@ const login = async (req, res) => {
     }
     const token = generateToken(user);
     let userObj = user.toObject();
-
     delete userObj.password;
+    delete userObj.email;
+    delete userObj.createdAt;
+    delete userObj.updatedAt;
+    delete userObj.__v;
     return res.status(200).json({
       success: !false,
       token,
