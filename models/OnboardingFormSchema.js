@@ -56,13 +56,15 @@ const OnboardingFormSchema = new mongoose.Schema(
     country: { type: String, required: true, trim: true, default: "India" },
     previousAssociations: { type: String, trim: true, default: "N.A" },
     volunteerPrograms: {
-      type: [String],
-      set: (arr) => arr.map((item) => item.trim()),
+      type: String,
+      trim: true,
+      default: "N.A",
     },
     aadhar: {
       type: String,
       trim: true,
       match: /^\d{12}$/,
+      required: true,
     },
     extraFields: {
       type: mongoose.Schema.Types.Mixed,

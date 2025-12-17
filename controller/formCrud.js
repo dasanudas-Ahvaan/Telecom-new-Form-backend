@@ -13,7 +13,9 @@ exports.testController = (req, res) => {
 
 exports.getAllMembers = async (req, res) => {
   try {
-    const members = await Member.find();
+    const members = await Member.find({ status: "active" }).select(
+      "-__v -createdAt -updatedAt"
+    );
     res.status(200).json({
       success: true,
       data: members,
@@ -59,7 +61,7 @@ exports.createMember = async (req, res) => {
       extraFields,
     } = req.body;
 
-    const allFields = {
+    const requiredFields = {
       email,
       fullName,
       phone,
@@ -73,17 +75,16 @@ exports.createMember = async (req, res) => {
       city,
       state,
       country,
-      previousAssociations,
-      volunteerPrograms,
       aadhar,
-      extraFields,
     };
 
-    const missingFields = Object.keys(allFields).filter(
-      (key) => !allFields[key]
+    const missingFields = Object.keys(requiredFields).filter(
+      (key) => !requiredFields[key]
     );
 
     if (missingFields.length > 0) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({
         success: false,
         message: `Missing required fields: ${missingFields.join(", ")}`,
@@ -92,6 +93,8 @@ exports.createMember = async (req, res) => {
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({
         success: false,
         message: "Please provide a valid email address",
@@ -99,6 +102,8 @@ exports.createMember = async (req, res) => {
     }
 
     if (phone && !/^[6-9]\d{9}$/.test(phone)) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({
         success: false,
         message: "Invalid Indian phone number",
@@ -173,12 +178,12 @@ exports.createMember = async (req, res) => {
 
 exports.deactivateMember = async (req, res) => {
   try {
-    const memberId = req.params.id;
+    const memberId = req.query.id;
     const deletedMember = await Member.findOneAndUpdate(
       { _id: memberId },
       { status: "inactive" },
       { new: true }
-    );
+    ).select("-__v -createdAt -updatedAt");
 
     if (!deletedMember) {
       return res.status(404).json({
@@ -190,6 +195,7 @@ exports.deactivateMember = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Member deleted successfully",
+      data: deletedMember,
     });
   } catch (error) {
     res.status(500).json({
@@ -202,10 +208,10 @@ exports.deactivateMember = async (req, res) => {
 
 exports.updateMember = async (req, res) => {
   try {
-    const memberId = req.params.id;
+    const memberId = req.query.id;
     const updateData = req.body;
 
-    const restrictedFields = ["_id", "createdAt", "memberId","email"];
+    const restrictedFields = ["_id", "createdAt", "memberId", "email"];
     for (let field of restrictedFields) {
       if (updateData[field]) delete updateData[field];
     }
