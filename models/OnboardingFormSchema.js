@@ -55,10 +55,7 @@ const OnboardingFormSchema = new mongoose.Schema(
     state: { type: String, required: true, trim: true },
     country: { type: String, required: true, trim: true, default: "India" },
     previousAssociations: { type: String, trim: true, default: "N.A" },
-    volunteerPrograms: {
-      type: [String],
-      set: (arr) => arr.map((item) => item.trim()),
-    },
+    volunteerPrograms: { type: String, trim: true, default: "N.A" },
     aadhar: {
       type: String,
       trim: true,
