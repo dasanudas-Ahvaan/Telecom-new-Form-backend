@@ -13,8 +13,17 @@ exports.testController = (req, res) => {
 
 exports.getAllMembers = async (req, res) => {
   try {
-    const members = await Member.find({ status: "active" }).select(
-      "-__v -createdAt -updatedAt"
+    const { status: filterType } = req.query;
+    let query = {};
+    if (filterType === "unverified") {
+      query = { isVerified: false };
+    } else if (filterType === "verified") {
+      query = { isVerified: true, status: "active" };
+    } else if (filterType === "inactive") {
+      query = { status: "inactive" };
+    }
+    const members = await Member.find(query).select(
+      "-__v -createdAt -updatedAt",
     );
     res.status(200).json({
       success: true,
@@ -79,7 +88,7 @@ exports.createMember = async (req, res) => {
     };
 
     const missingFields = Object.keys(requiredFields).filter(
-      (key) => !requiredFields[key]
+      (key) => !requiredFields[key],
     );
 
     if (missingFields.length > 0) {
@@ -123,7 +132,7 @@ exports.createMember = async (req, res) => {
     const counter = await Counter.findByIdAndUpdate(
       { _id: "member_id" },
       { $inc: { seq: 1 }, $setOnInsert: { collectionName: "members" } },
-      { new: true, upsert: true, session }
+      { new: true, upsert: true, session },
     );
 
     const paddedId = String(counter.seq).padStart(5, "0");
@@ -149,7 +158,7 @@ exports.createMember = async (req, res) => {
   आपका यह समर्पित सहयोग, सनातन धर्म और राष्ट्र की सेवा के हमारे सामूहिक लक्ष्य को एक नई दिशा और **अभूतपूर्व बल** प्रदान करता है। हम आपके सक्रिय योगदान की प्रतीक्षा कर रहे हैं।
 </p>
     <p style="margin-top:20px; color:#555;">🚩 जय श्री राम!<br>— Team आह्वान-धर्म रक्षा समिति</p>
-  </div>`
+  </div>`,
     );
 
     await EmailOTP.deleteOne({ email });
@@ -182,7 +191,7 @@ exports.deactivateMember = async (req, res) => {
     const deletedMember = await Member.findOneAndUpdate(
       { _id: memberId },
       { status: "inactive" },
-      { new: true }
+      { new: true },
     ).select("-__v -createdAt -updatedAt");
 
     if (!deletedMember) {

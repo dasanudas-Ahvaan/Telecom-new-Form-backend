@@ -1,27 +1,20 @@
+// routes/Admin.js
 const express = require("express");
-const {
-  testAdmin,
-  login,
-  createAdmin,
-} = require("../controller/adminController");
-const {
-  getAllMembers,
-  updateMember,
-  deactivateMember,
-} = require("../controller/formCrud");
-const { verifyToken } = require("../middleware/auth");
 const router = express.Router();
+const {
+  createAdmin,
+  removeAdmin,
+  resetAdminPassword,
+  getAllAdmins,
+} = require("../controller/adminController");
+const { verifyToken } = require("../middleware/auth");
 
-router.get("/test", testAdmin);
+// All routes require authentication
+router.use(verifyToken);
 
-router.post("/login", login);
-
-router
-  .route("/:id")
-  .get(verifyToken, getAllMembers)
-  .put(verifyToken, updateMember)
-  .delete(verifyToken, deactivateMember)
-  .post(verifyToken, createAdmin);
+router.post("/create/:id", createAdmin);
+router.delete("/remove/:id/:adminId", removeAdmin);
+router.put("/reset-password/:id", resetAdminPassword);
+router.get("/list/:id", getAllAdmins);
 
 module.exports = router;
-//improve above 3 blue controllers then test

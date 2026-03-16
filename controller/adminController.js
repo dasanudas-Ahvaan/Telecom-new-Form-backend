@@ -101,4 +101,121 @@ const createAdmin = async (req, res) => {
   }
 };
 
-module.exports = { testAdmin, login, createAdmin };
+const removeAdmin = async (req, res) => {
+  try {
+    const accessError = validateSuperUser(req, res);
+    if (accessError) return;
+
+    const { adminId } = req.params;
+
+    if (!adminId) {
+      return res.status(400).json({
+        success: false,
+        message: "Admin ID is required",
+      });
+    }
+
+    const admin = await Admin.findById(adminId);
+    if (!admin) {
+      return res.status(404).json({
+        success: false,
+        message: "Admin not found",
+      });
+    }
+
+    if (admin.email === req.user.email) {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot remove yourself",
+      });
+    }
+
+    await Admin.findByIdAndDelete(adminId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Admin removed successfully",
+    });
+  } catch (error) {
+    console.error("Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error while removing admin",
+      error: error?.message,
+    });
+  }
+};
+
+const resetAdminPassword = async (req, res) => {
+  try {
+    const accessError = validateSuperUser(req, res);
+    if (accessError) return;
+
+    const { adminId, newPassword } = req.body;
+
+    if (!adminId) {
+      return res.status(400).json({
+        success: false,
+        message: "Admin ID is required",
+      });
+    }
+
+    if (!newPassword || newPassword.length < 8) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 8 characters",
+      });
+    }
+
+    const admin = await Admin.findById(adminId);
+    if (!admin) {
+      return res.status(404).json({
+        success: false,
+        message: "Admin not found",
+      });
+    }
+
+    admin.password = newPassword;
+    await admin.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Password reset successfully",
+    });
+  } catch (error) {
+    console.error("Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error while resetting password",
+      error: error?.message,
+    });
+  }
+};
+const getAllAdmins = async (req, res) => {
+  try {
+    const accessError = validateSuperUser(req, res);
+    if (accessError) return;
+
+    const admins = await Admin.find({ role: "admin" }).select("-password -__v");
+
+    return res.status(200).json({
+      success: true,
+      data: admins,
+    });
+  } catch (error) {
+    console.error("Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching admins",
+      error: error?.message,
+    });
+  }
+};
+module.exports = {
+  testAdmin,
+  login,
+  createAdmin,
+  removeAdmin,
+  resetAdminPassword,
+  getAllAdmins,
+};

@@ -18,7 +18,7 @@ mongoose
     console.error("!! Error connecting to MongoDB:", error);
   });
 
-const allowedOrigins = ["http://localhost:5173"];
+const allowedOrigins = process.env.ALLOWED_ORIGINS.split(",");
 
 app.use(
   cors({
