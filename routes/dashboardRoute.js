@@ -1,7 +1,7 @@
 const express = require("express");
 const {
   testAdmin,
-  login,
+  loginController,
 } = require("../controller/adminController");
 const {
   getAllMembers,
@@ -13,7 +13,7 @@ const router = express.Router();
 
 router.get("/test", testAdmin);
 
-router.post("/login", login);
+router.post("/login", loginController);
 
 router
   .route("/:id")

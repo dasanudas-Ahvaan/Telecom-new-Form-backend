@@ -2,19 +2,42 @@
 const express = require("express");
 const router = express.Router();
 const {
-  createAdmin,
-  removeAdmin,
-  resetAdminPassword,
+  createAdminController,
+  resetAdminPasswordController,
   getAllAdmins,
+  removeAdminController,
 } = require("../controller/adminController");
 const { verifyToken } = require("../middleware/auth");
+const { withAudit } = require("../utils/withAudit");
+const { Admin } = require("../models/adminSchema");
 
 // All routes require authentication
 router.use(verifyToken);
+const entity = "Super_User";
 
-router.post("/create/:id", createAdmin);
-router.delete("/remove/:id/:adminId", removeAdmin);
-router.put("/reset-password/:id", resetAdminPassword);
+router.post(
+  "/create/:id",
+  withAudit(createAdminController, {
+    action: "CREATE_ADMIN",
+    entity,
+  }),
+);
+
+router.delete(
+  "/remove/:id/:adminId",
+  withAudit(removeAdminController, {
+    action: "DELETE_ADMIN",
+    entity,
+  }),
+);
+
+router.put(
+  "/reset-password/:id",
+  withAudit(resetAdminPasswordController, {
+    action: "RESET_PASS",
+    entity,
+  }),
+);
 router.get("/list/:id", getAllAdmins);
 
 module.exports = router;

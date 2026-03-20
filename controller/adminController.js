@@ -1,8 +1,17 @@
 const { Admin } = require("../models/adminSchema.js");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-const { generateToken } = require("../middleware/auth.js");
+
 const { validateSuperUser } = require("../middleware/superUserValidator.js");
+const {
+  notFoundJsonResponse,
+  unauthorizedJsonResponse,
+  internalErrorJsonResponse,
+  successJsonResponse,
+  badRequestJsonResponse,
+} = require("../utils/jsonResponses/jsonResponses.js");
+const login = require("../services/adminServices/login.js");
+const removeAdmin = require("../services/adminServices/removeAdmin.js");
+const resetPassword = require("../services/adminServices/resetpassword.js");
+const createAdmin = require("../services/adminServices/createAdmin.js");
 
 const testAdmin = (req, res) => {
   res.status(200).json({
@@ -11,186 +20,87 @@ const testAdmin = (req, res) => {
   });
 };
 
-const login = async (req, res) => {
+const loginController = async (req, res) => {
   try {
     const { email, password } = req.body;
-    if (!email) {
-      return res.status(401).json({ success: false, message: "Missing email" });
-    } else if (!password) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Missing password" });
-    }
-    const user = await Admin.findOne({ email }).select("+password");
-    if (!user) {
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found" });
-    }
-    const isMatch = bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Invalid Credentials" });
-    }
-    const token = generateToken(user);
-    let userObj = user.toObject();
-    delete userObj.password;
-    delete userObj.email;
-    delete userObj.createdAt;
-    delete userObj.updatedAt;
-    delete userObj.__v;
-    return res.status(200).json({
-      success: !false,
-      token,
-      message: "Logged in successfully",
-      data: userObj,
-    });
-  } catch (error) {
-    console.error("Error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Error while logging in",
-      error: error,
-    });
-  }
-};
+    const { token, data } = await login(email, password);
 
-const createAdmin = async (req, res) => {
-  try {
-    const accessError = validateSuperUser(req, res);
-    if (accessError) return;
-    const { email, password } = req.body;
-    if (!email) {
-      return res.status(401).json({ success: false, message: "Missing email" });
-    } else if (!password) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Missing password" });
-    }
-    let user = await Admin.findOne({ email });
-    if (user) {
-      return res.status(409).json({
-        success: false,
-        message: "User alreay exists with this email",
-      });
-    } else {
-      user = await Admin.create({
-        email,
-        password,
-        role: "admin",
-      });
-    }
-    let userObj = user.toObject();
-    delete userObj.password;
-    delete userObj.role;
-    delete userObj._id;
-    delete userObj.createdAt;
-    delete userObj.updatedAt;
-    delete userObj.__v;
     return res
       .status(200)
-      .json({ success: true, message: "Admin user created", data: userObj });
+      .json(
+        successJsonResponse(true, "Logged in successfully", data, { token }),
+      );
   } catch (error) {
-    console.error("Error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Error while creating admin",
-      error: error?.message,
-    });
+    if (
+      error.message === "Invalid user credentials" ||
+      error.message === "Missing email" ||
+      error.message === "Missing password"
+    )
+      return res.status(401).json(unauthorizedJsonResponse(error.message));
+    else if (error.message === "User not found")
+      return res.status(404).json(notFoundJsonResponse(error.message));
+    else return res.json(internalErrorJsonResponse(error.message));
   }
 };
 
-const removeAdmin = async (req, res) => {
-  try {
-    const accessError = validateSuperUser(req, res);
-    if (accessError) return;
+const createAdminController = async (req, res) => {
+  const accessError = validateSuperUser(req, res);
+  if (accessError) return;
+  const { name, email, password } = req.body;
+  const response = await createAdmin(name, email, password);
 
-    const { adminId } = req.params;
-
-    if (!adminId) {
-      return res.status(400).json({
-        success: false,
-        message: "Admin ID is required",
-      });
-    }
-
-    const admin = await Admin.findById(adminId);
-    if (!admin) {
-      return res.status(404).json({
-        success: false,
-        message: "Admin not found",
-      });
-    }
-
-    if (admin.email === req.user.email) {
-      return res.status(400).json({
-        success: false,
-        message: "Cannot remove yourself",
-      });
-    }
-
-    await Admin.findByIdAndDelete(adminId);
-
-    return res.status(200).json({
-      success: true,
-      message: "Admin removed successfully",
-    });
-  } catch (error) {
-    console.error("Error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Error while removing admin",
-      error: error?.message,
-    });
-  }
+  return response;
 };
 
-const resetAdminPassword = async (req, res) => {
-  try {
-    const accessError = validateSuperUser(req, res);
-    if (accessError) return;
+const removeAdminController = async (req, res) => {
+  const accessError = validateSuperUser(req, res);
+  if (accessError) return;
 
-    const { adminId, newPassword } = req.body;
+  const { adminId } = req.params;
+  const { email: userEmail } = req.user;
 
-    if (!adminId) {
-      return res.status(400).json({
-        success: false,
-        message: "Admin ID is required",
-      });
-    }
+  const result = await removeAdmin(adminId, userEmail);
 
-    if (!newPassword || newPassword.length < 8) {
-      return res.status(400).json({
-        success: false,
-        message: "Password must be at least 8 characters",
-      });
-    }
-
-    const admin = await Admin.findById(adminId);
-    if (!admin) {
-      return res.status(404).json({
-        success: false,
-        message: "Admin not found",
-      });
-    }
-
-    admin.password = newPassword;
-    await admin.save();
-
-    return res.status(200).json({
-      success: true,
-      message: "Password reset successfully",
-    });
-  } catch (error) {
-    console.error("Error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Error while resetting password",
-      error: error?.message,
-    });
-  }
+  return result;
 };
+
+// const removeAdminController = async (req, res) => {
+//   try {
+//     const accessError = validateSuperUser(req, res);
+//     if (accessError) return;
+
+//     const { adminId } = req.params;
+//     const { email: userEmail } = req.user;
+
+//     const result = await removeAdmin(adminId, userEmail);
+
+//     return result;
+//     return res
+//       .status(200)
+//       .json(successJsonResponse(response.success, response.message));
+//   } catch (error) {
+//     if (error.message === "Missing credentials")
+//       return res.status(401).json(unauthorizedJsonResponse(error.message));
+//     else if (error.message === "Not found")
+//       return res.status(404).json(notFoundJsonResponse(error.message));
+//     else if (error.message === "Denied")
+//       return res.status(400).json(badRequestJsonResponse(error.message));
+//     else return res.json(internalErrorJsonResponse(error.message));
+//   }
+// };
+
+const resetAdminPasswordController = async (req, res) => {
+  const accessError = validateSuperUser(req, res);
+  if (accessError) return;
+
+  const { adminId, newPassword } = req.body;
+  const userEmail = req.user.email;
+
+  const response = await resetPassword(adminId, newPassword, userEmail);
+
+  return response;
+};
+
 const getAllAdmins = async (req, res) => {
   try {
     const accessError = validateSuperUser(req, res);
@@ -213,9 +123,9 @@ const getAllAdmins = async (req, res) => {
 };
 module.exports = {
   testAdmin,
-  login,
-  createAdmin,
-  removeAdmin,
-  resetAdminPassword,
+  loginController,
+  createAdminController,
+  removeAdminController,
+  resetAdminPasswordController,
   getAllAdmins,
 };

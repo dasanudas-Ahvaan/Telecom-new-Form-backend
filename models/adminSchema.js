@@ -21,8 +21,12 @@ const AdminSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    name: {
+      type: String,
+      required: true,
+    },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 AdminSchema.pre("save", async function (next) {
