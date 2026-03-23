@@ -3,6 +3,7 @@ const { Member } = require("../models/OnboardingFormSchema.js");
 const sendMail = require("../utils/mailers.js");
 const Counter = require("../models/counter.js");
 const { EmailOTP } = require("../models/otpSchema.js");
+const updateMember = require("../services/formCrudServices/updateMember.js");
 
 exports.testController = (req, res) => {
   res.status(200).json({
@@ -215,47 +216,12 @@ exports.deactivateMember = async (req, res) => {
   }
 };
 
-exports.updateMember = async (req, res) => {
-  try {
-    const memberId = req.query.id;
-    const updateData = req.body;
-
-    const restrictedFields = ["_id", "createdAt", "memberId", "email"];
-    for (let field of restrictedFields) {
-      if (updateData[field]) delete updateData[field];
-    }
-
-    if (updateData.phone && !/^[6-9]\d{9}$/.test(updateData.phone)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid Indian phone number",
-      });
-    }
-
-    const updatedMember = await Member.findByIdAndUpdate(memberId, updateData, {
-      new: true,
-      runValidators: true,
-    });
-
-    if (!updatedMember) {
-      return res.status(404).json({
-        success: false,
-        message: "Member not found",
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Member updated successfully",
-      data: updatedMember,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Failed to update member",
-      error: error.message,
-    });
-  }
+exports.updateMemberController = async (req, res) => {
+  const memberId = req.query.id;
+  const updateData = req.body;
+  const userEmail = req.user.email;
+  const result = await updateMember(memberId, updateData, userEmail);
+  return result;
 };
 
 exports.getMemberById = async (req, res) => {

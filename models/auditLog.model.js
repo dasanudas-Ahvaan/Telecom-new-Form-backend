@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 const AuditLogSchema = new mongoose.Schema(
   {
     action: { type: String, required: true }, // CREATE, UPDATE, DELETE
-    entity: { type: String, required: true }, // ADMIN, USER, ORDER //who did it?
+    entity: { type: String, required: true }, // ADMIN, USER, ORDER //performed on?
     entityId: { type: mongoose.Schema.Types.ObjectId },
 
     performedBy: {
@@ -13,8 +13,13 @@ const AuditLogSchema = new mongoose.Schema(
     },
 
     changes: {
-      before: mongoose.Schema.Types.Mixed,
-      after: mongoose.Schema.Types.Mixed,
+      type: mongoose.Schema.Types.Mixed,
+    },
+    before: {
+      type: mongoose.Schema.Types.Mixed,
+    },
+    after: {
+      type: mongoose.Schema.Types.Mixed,
     },
 
     metadata: mongoose.Schema.Types.Mixed,
@@ -28,7 +33,7 @@ const AuditLogSchema = new mongoose.Schema(
       default: "SUCCESS",
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 module.exports = mongoose.model("AuditLog", AuditLogSchema);

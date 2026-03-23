@@ -19,6 +19,7 @@ const withAudit = (handler, options) => {
         entityId: result?.entityId,
         before: before || result?.before,
         after: result?.after || null,
+        changes: result.changes || null,
         metadata: result?.metadata,
         status: "SUCCESS",
       });
@@ -29,7 +30,6 @@ const withAudit = (handler, options) => {
         message: result?.response?.message || "Operation successful",
         data: result?.response?.data || null,
       });
-
     } catch (error) {
       // Failure log
       await logAudit({
@@ -45,8 +45,8 @@ const withAudit = (handler, options) => {
       const statusMap = {
         "Missing credentials": 401,
         "Not found": 404,
-        "Denied": 400,
-        "Unauthorized": 401,
+        Denied: 400,
+        Unauthorized: 401,
       };
 
       const statusCode = statusMap[error.message] || 500;
