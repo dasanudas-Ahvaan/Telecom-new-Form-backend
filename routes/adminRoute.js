@@ -1,4 +1,3 @@
-// routes/Admin.js
 const express = require("express");
 const router = express.Router();
 const {
@@ -9,7 +8,6 @@ const {
 } = require("../controller/adminController");
 const { verifyToken } = require("../middleware/auth");
 const { withAudit } = require("../utils/withAudit");
-const { Admin } = require("../models/adminSchema");
 const verifyCSRF = require("../middleware/csrfCheck");
 
 // All routes require authentication

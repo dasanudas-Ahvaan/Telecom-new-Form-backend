@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const Counter = require("../models/counter.js");
 
 const OnboardingFormSchema = new mongoose.Schema(
   {
