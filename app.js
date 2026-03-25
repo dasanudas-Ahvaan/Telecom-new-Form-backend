@@ -8,6 +8,7 @@ require("dotenv").config();
 const PORT = process.env.PORT;
 const MONGO_URI = process.env.MONGO_URI;
 const routes = require("./routes/router");
+const cookieParser = require("cookie-parser");
 
 mongoose
   .connect(MONGO_URI)
@@ -32,14 +33,14 @@ app.use(
     },
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
-  })
+    allowedHeaders: ["Content-Type", "Authorization", "X-XSRF-TOKEN"],
+  }),
 );
-
 app.use(logger("dev"));
 
-
-app.use(express.json());                    
-app.use(express.urlencoded({ extended: true }));  
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 app.use("/api", routes);
 

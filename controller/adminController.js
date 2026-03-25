@@ -1,4 +1,5 @@
 const { Admin } = require("../models/adminSchema.js");
+const crypto = require("crypto");
 
 const { validateSuperUser } = require("../middleware/superUserValidator.js");
 const {
@@ -13,6 +14,8 @@ const removeAdmin = require("../services/adminServices/removeAdmin.js");
 const resetPassword = require("../services/adminServices/resetpassword.js");
 const createAdmin = require("../services/adminServices/createAdmin.js");
 
+const environment = process.env.NODE_ENV;
+
 const testAdmin = (req, res) => {
   res.status(200).json({
     success: true,
@@ -24,7 +27,18 @@ const loginController = async (req, res) => {
   try {
     const { email, password } = req.body;
     const { token, data } = await login(email, password);
-
+    const csrfToken = crypto.randomBytes(32).toString("hex");
+    res.cookie("token", token, {
+      httpOnly: true, // Prevents XSS (JavaScript cannot read this)
+      secure: environment === "production", // Only sent over HTTPS (use false for local dev)
+      sameSite: "Strict", // Prevents CSRF
+      maxAge: 1000 * 60 , // 1 hour in milliseconds
+    });
+    res.cookie("XSRF-TOKEN", csrfToken, {
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Strict",
+      maxAge: 1000  * 60,
+    });
     return res
       .status(200)
       .json(
@@ -41,6 +55,26 @@ const loginController = async (req, res) => {
       return res.status(404).json(notFoundJsonResponse(error.message));
     else return res.json(internalErrorJsonResponse(error.message));
   }
+};
+
+const logoutController = async (req, res) => {
+  // Clear the Auth token cookie
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "Strict",
+  });
+
+  // Clear the CSRF token cookie
+  res.clearCookie("XSRF-TOKEN", {
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "Strict",
+  });
+
+  return res.status(200).json({
+    success: true,
+    message: "Logged out successfully",
+  });
 };
 
 const createAdminController = async (req, res) => {
@@ -124,6 +158,7 @@ const getAllAdmins = async (req, res) => {
 module.exports = {
   testAdmin,
   loginController,
+  logoutController,
   createAdminController,
   removeAdminController,
   resetAdminPasswordController,

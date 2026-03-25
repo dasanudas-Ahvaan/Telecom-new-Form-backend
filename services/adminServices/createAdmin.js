@@ -5,7 +5,7 @@ const createAdmin = async (name, email, password) => {
     if (!email || !name || !password) {
       throw new Error("Missing credentials");
     }
-    console.log("THISII LALALALA", password.length, password);
+    
     if (password.length < 8) {
       throw new Error(
         "Password length must be greater than or equal to 8 characters",

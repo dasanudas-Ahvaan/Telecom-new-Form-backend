@@ -17,8 +17,7 @@ function generateToken(user) {
 }
 
 function verifyToken(req, res, next) {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
+  const token = req.cookies.token;
   if (!token) {
     return res
       .status(401)

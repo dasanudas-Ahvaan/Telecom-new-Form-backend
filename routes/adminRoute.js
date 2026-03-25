@@ -10,8 +10,10 @@ const {
 const { verifyToken } = require("../middleware/auth");
 const { withAudit } = require("../utils/withAudit");
 const { Admin } = require("../models/adminSchema");
+const verifyCSRF = require("../middleware/csrfCheck");
 
 // All routes require authentication
+router.use(verifyCSRF);
 router.use(verifyToken);
 const entity = "Super_User";
 
