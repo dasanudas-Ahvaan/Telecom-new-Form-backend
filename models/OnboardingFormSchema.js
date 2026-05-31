@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { VolunteerProgramResponseSchema } = require("./VolunteerProgramResponseSchema.model");
 
 const OnboardingFormSchema = new mongoose.Schema(
   {
@@ -53,11 +54,9 @@ const OnboardingFormSchema = new mongoose.Schema(
     city: { type: String, required: true, trim: true },
     state: { type: String, required: true, trim: true },
     country: { type: String, required: true, trim: true, default: "India" },
-    previousAssociations: { type: String, trim: true, default: "N.A" },
     volunteerPrograms: {
-      type: String,
-      trim: true,
-      default: "N.A",
+      type: [VolunteerProgramResponseSchema],
+      default: [],
     },
     aadhar: {
       type: String,
@@ -76,7 +75,7 @@ const OnboardingFormSchema = new mongoose.Schema(
   {
     _id: false,
     timestamps: true,
-  }
+  },
 );
 
 const Member = mongoose.model("Member", OnboardingFormSchema);
