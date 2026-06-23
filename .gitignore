@@ -143,3 +143,11 @@ vite.config.ts.timestamp-*
 
 # Temporary folders
 /ahvaan/
+
+#env
+
+*.env
+node_modules/
+package-lock.json
+package.json
+

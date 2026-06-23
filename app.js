@@ -3,6 +3,7 @@ const cors = require("cors");
 const logger = require("morgan");
 const mongoose = require("mongoose");
 const app = express();
+const paymentRoute = require("./routes/paymentRoute");
 require("dotenv").config();
 
 const PORT = process.env.PORT;
@@ -52,3 +53,6 @@ app.get("/", (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Server is running at http://localhost:${PORT}`);
 });
+
+//phonepe payment 
+app.use("/api/payment", paymentRoute);
