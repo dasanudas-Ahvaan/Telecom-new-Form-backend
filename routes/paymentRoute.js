@@ -2,13 +2,13 @@ const express = require("express");
 const router = express.Router();
 
 const {
- createPayment,
- checkStatus,
- phonepeCallback
+  createPayment,
+  checkStatus,
+  verifyPayment
 } = require("../controller/paymentController");
 
 router.post("/pay", createPayment);
 router.get("/status/:txnId", checkStatus);
-router.post("/callback", phonepeCallback);
+router.post("/verify", verifyPayment);
 
 module.exports = router;

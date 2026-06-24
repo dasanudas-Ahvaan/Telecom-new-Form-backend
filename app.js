@@ -1,10 +1,11 @@
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const logger = require("morgan");
 const mongoose = require("mongoose");
 const app = express();
 const paymentRoute = require("./routes/paymentRoute");
-require("dotenv").config();
+
 
 const PORT = process.env.PORT;
 const MONGO_URI = process.env.MONGO_URI;
@@ -24,7 +25,7 @@ const allowedOrigins = ["http://localhost:5000","http://localhost:5173"];
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (!origin) return callback(null, true);
+      if (!origin || origin === "null" || origin.startsWith("file://")) return callback(null, true);
       if (allowedOrigins.indexOf(origin) === -1) {
         const msg = `CORS error: origin not allowed`;
         return callback(new Error(msg), false);

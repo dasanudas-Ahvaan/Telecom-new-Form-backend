@@ -13,15 +13,12 @@ const { verifyToken } = require("../middleware/auth");
 const router = express.Router();
 
 router.get("/test", testAdmin);
-
 router.post("/login", login);
 
-router
-  .route("/:id")
-  .get(verifyToken, getAllMembers)
-  .put(verifyToken, updateMember)
-  .delete(verifyToken, deactivateMember)
-  .post(verifyToken, createAdmin);
+router.get("/members", verifyToken, getAllMembers);
+router.put("/members/:id", verifyToken, updateMember);
+router.delete("/members/:id", verifyToken, deactivateMember);
+router.post("/create-admin/:id", verifyToken, createAdmin);
 
 module.exports = router;
-//improve above 3 blue controllers then test
+

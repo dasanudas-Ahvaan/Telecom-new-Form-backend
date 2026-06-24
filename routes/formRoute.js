@@ -3,11 +3,7 @@ const router = express.Router();
 const { otpLimiter } = require("../middleware/otpLimiter.js");
 const {
   testController,
-  getAllMembers,
   createMember,
-  deleteMember,
-  updateMember,
-  getMemberById,
 } = require("../controller/formCrud.js");
 const { sendOTP, verifyOTP } = require("../controller/otpController.js");
 
