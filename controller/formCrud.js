@@ -111,7 +111,7 @@ exports.createMember = async (req, res) => {
       });
     }
 
-    if (phone && !/^[6-9]\d{9}$/.test(phone)) {
+    if (phone && !/^\d{10}$/.test(phone)) {
       await session.abortTransaction();
       session.endSession();
       return res.status(400).json({
