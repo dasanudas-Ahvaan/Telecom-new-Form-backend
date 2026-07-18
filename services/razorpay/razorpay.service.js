@@ -98,7 +98,10 @@ const paymentCallback = async (
     if (!order) {
       throw new Error("Order not found");
     }
-
+    //idempotency guard
+    if (order.status === "success" || order.status === "failed") {
+      return { success: true, message: "Already processed" };
+    }
     await session.withTransaction(async () => {
       try {
         // If duplicate payment arrives this insert will fail
@@ -130,7 +133,7 @@ const paymentCallback = async (
         },
         {
           $set: {
-            status: status,
+            status: status === "captured" ? "success" : "failed",
           },
         },
         {
