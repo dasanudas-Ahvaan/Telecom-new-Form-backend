@@ -6,6 +6,6 @@ const {
 const router = require("express").Router();
 
 router.post("/", createOrder);
-router.post("/webhook/razorpay", razorpayCallback);
+// router.post("/webhook/razorpay", razorpayCallback);
 
 module.exports = router;

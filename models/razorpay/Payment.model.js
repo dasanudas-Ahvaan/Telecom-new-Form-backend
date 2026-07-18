@@ -20,7 +20,7 @@ const paymentSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["paid", "failed"],
+      enum: ["captured", "failed"],
     },
 
     payload: Object,

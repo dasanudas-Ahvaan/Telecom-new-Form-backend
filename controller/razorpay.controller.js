@@ -26,19 +26,24 @@ const createOrder = async (req, res) => {
 
 const razorpayCallback = async (req, res) => {
   try {
+    const rawBody = req.body;
+    const webhook_signature = req.headers["x-razorpay-signature"];
+
+    const parsedBody = JSON.parse(rawBody.toString());
     const {
-      id: razorpay_order_id,
-      razorpay_payment_id,
-      razorpay_signature,
-    } = req.body;
-    const entireBody = req.body;
-    console.log("callback", JSON.stringify(entireBody));
+      id: razorpay_payment_id,
+      order_id: razorpay_order_id,
+      status,
+    } = parsedBody.payload.payment.entity;
+
+    console.log("this is web sig", webhook_signature);
 
     const callbackResponse = await paymentCallback(
       razorpay_order_id,
       razorpay_payment_id,
-      razorpay_signature,
-      entireBody,
+      status,
+      webhook_signature,
+      parsedBody,
     );
 
     const { success, message } = callbackResponse;

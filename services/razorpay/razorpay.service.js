@@ -78,23 +78,19 @@ const createOrderInRazorPayAndDB = async (amount, receipt) => {
 const paymentCallback = async (
   razorpay_order_id,
   razorpay_payment_id,
-  razorpay_signature,
+  status,
+  webhook_signature,
   entireBody,
 ) => {
   const session = await mongoose.startSession();
-
   try {
     const valid = verifySignature(
       razorpay_order_id,
       razorpay_payment_id,
-      razorpay_signature,
+      webhook_signature,
     );
 
     if (!valid) {
-      await Order.updateOne(
-        { razorpayOrderId: razorpay_order_id },
-        { $set: { status: "failed" } },
-      );
       throw new Error("Invalid Signature");
     }
 
@@ -115,8 +111,8 @@ const paymentCallback = async (
               orderId: order._id,
               razorpayOrderId: razorpay_order_id,
               razorpayPaymentId: razorpay_payment_id,
-              razorpaySignature: razorpay_signature,
-              status: "paid",
+              razorpaySignature: webhook_signature,
+              status: status,
               payload: entireBody,
             },
           ],
@@ -134,11 +130,10 @@ const paymentCallback = async (
       await Order.updateOne(
         {
           _id: order._id,
-          status: { $ne: "paid" },
         },
         {
           $set: {
-            status: "paid",
+            status: status,
           },
         },
         {
@@ -156,48 +151,23 @@ const paymentCallback = async (
       // ---------------------------
     });
 
-    session.endSession();
-
     return {
       success: true,
       message: "Payment processed",
+      data: { status: status },
     };
   } catch (err) {
-    session.endSession();
-
     if (err.message === "PAYMENT_ALREADY_PROCESSED") {
       return {
         success: true,
         message: "Payment already processed",
+        data: { status: status },
       };
     }
 
-    if (err.message === "Invalid Signature") {
-      await Order.updateOne(
-        {
-          razorpayOrderId: razorpay_order_id,
-        },
-        {
-          $set: {
-            status: "failed",
-          },
-        },
-      );
-
-      try {
-        await Payment.create({
-          razorpayOrderId: razorpay_order_id,
-          razorpayPaymentId: razorpay_payment_id,
-          razorpaySignature: razorpay_signature,
-          status: "failed",
-          payload: entireBody,
-        });
-      } catch (_) {
-        // Ignore duplicate failed callback
-      }
-    }
-
     throw err;
+  } finally {
+    session.endSession();
   }
 };
 module.exports = { createOrderInRazorPayAndDB, paymentCallback };

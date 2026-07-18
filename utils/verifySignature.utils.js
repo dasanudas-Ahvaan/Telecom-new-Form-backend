@@ -12,7 +12,7 @@ module.exports = (
     const expectedSignature = crypto
         .createHmac(
             "sha256",
-            process.env.RAZORPAY_KEY_SECRET
+            process.env.RAZORPAY_WEBHOOK_SECRET
         )
         .update(body.toString())
         .digest("hex");

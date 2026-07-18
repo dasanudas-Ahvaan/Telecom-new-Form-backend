@@ -9,6 +9,7 @@ const PORT = process.env.PORT;
 const MONGO_URI = process.env.MONGO_URI;
 const routes = require("./routes/router");
 const cookieParser = require("cookie-parser");
+const { razorpayCallback } = require("./controller/razorpay.controller");
 
 mongoose
   .connect(MONGO_URI)
@@ -37,6 +38,12 @@ app.use(
   }),
 );
 app.use(logger("dev"));
+
+app.post(
+  "/api/pay/webhook/razorpay", 
+  express.raw({ type: "application/json" }), 
+  razorpayCallback
+);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
