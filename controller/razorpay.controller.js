@@ -26,10 +26,13 @@ const createOrder = async (req, res) => {
 
 const razorpayCallback = async (req, res) => {
   try {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
-      req.body;
+    const {
+      id: razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature,
+    } = req.body;
     const entireBody = req.body;
-    console.log("callback", entireBody);
+    console.log("callback", JSON.stringify(entireBody));
 
     const callbackResponse = await paymentCallback(
       razorpay_order_id,

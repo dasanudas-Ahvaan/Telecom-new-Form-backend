@@ -9,6 +9,8 @@ const razorpayService = async (data) => {
 };
 
 const createOrderInRazorPayAndDB = async (amount, receipt) => {
+  console.log("amount donate", amount);
+
   if (!amount || amount < 1) {
     throw new Error("invalid amount");
   }
@@ -25,7 +27,7 @@ const createOrderInRazorPayAndDB = async (amount, receipt) => {
       order: existingOrder,
       razorpayOrder: {
         id: existingOrder.razorpayOrderId,
-        amount: existingOrder.amount * 100,
+        amount: existingOrder.amount,
         currency: existingOrder.currency,
         receipt: existingOrder.receipt,
       },
@@ -50,6 +52,7 @@ const createOrderInRazorPayAndDB = async (amount, receipt) => {
     if (!order) {
       throw new Error("Error faced during order submission");
     }
+    console.log("order ", order, "and razor", razorpayOrder);
 
     return { order, razorpayOrder };
   } catch (err) {
@@ -61,7 +64,7 @@ const createOrderInRazorPayAndDB = async (amount, receipt) => {
         order,
         razorpayOrder: {
           id: order.razorpayOrderId,
-          amount: order.amount * 100,
+          amount: order.amount,
           currency: order.currency,
           receipt: order.receipt,
         },
@@ -71,69 +74,6 @@ const createOrderInRazorPayAndDB = async (amount, receipt) => {
     throw err.message;
   }
 };
-
-// const paymentCallback = async (
-//   razorpay_order_id,
-//   razorpay_payment_id,
-//   razorpay_signature,
-//   entireBody,
-// ) => {
-//   try {
-//     const valid = verifySignature(
-//       razorpay_order_id,
-//       razorpay_payment_id,
-//       razorpay_signature,
-//     );
-//     const order = await Order.findOne({
-//       razorpayOrderId: razorpay_order_id,
-//     });
-
-//     if (!order) {
-//       throw new Error("Order not found");
-//     }
-//     const existingPayment = await Payment.findOne({
-//       razorpayPaymentId: razorpay_payment_id,
-//     });
-//     if (existingPayment) {
-//       const { status } = existingPayment;
-
-//       return status === "paid"
-//         ? { success: true, message: "payment already processed" }
-//         : { success: false, message: "payment failed" };
-//     }
-//     if (!valid) {
-//       order.status = "failed";
-
-//       await order.save();
-
-//       await Payment.create({
-//         orderId: order._id,
-//         razorpayOrderId: razorpay_order_id,
-//         razorpayPaymentId: razorpay_payment_id,
-//         razorpaySignature: razorpay_signature,
-//         status: "failed",
-//         payload: entireBody,
-//       });
-
-//       throw new Error("Invalid Signature");
-//     }
-//     order.status = "paid";
-
-//     await order.save();
-
-//     await Payment.create({
-//       orderId: order._id,
-//       razorpayOrderId: razorpay_order_id,
-//       razorpayPaymentId: razorpay_payment_id,
-//       razorpaySignature: razorpay_signature,
-//       status: "paid",
-//       payload: entireBody,
-//     });
-//     return { success: true, message: "Payment processed" };
-//   } catch (error) {
-//     throw new Error(error.message);
-//   }
-// };
 
 const paymentCallback = async (
   razorpay_order_id,
@@ -151,6 +91,10 @@ const paymentCallback = async (
     );
 
     if (!valid) {
+      await Order.updateOne(
+        { razorpayOrderId: razorpay_order_id },
+        { $set: { status: "failed" } },
+      );
       throw new Error("Invalid Signature");
     }
 
