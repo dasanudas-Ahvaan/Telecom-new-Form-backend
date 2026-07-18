@@ -1,22 +1,13 @@
 const crypto = require("crypto");
 
-module.exports = (
-    razorpayOrderId,
-    razorpayPaymentId,
-    razorpaySignature
-) => {
-
-    const body =
-        razorpayOrderId + "|" + razorpayPaymentId;
+// Webhook validation signature
+module.exports = (rawBody, signature) => {
+    const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
 
     const expectedSignature = crypto
-        .createHmac(
-            "sha256",
-            process.env.RAZORPAY_WEBHOOK_SECRET
-        )
-        .update(body.toString())
+        .createHmac("sha256", secret)
+        .update(rawBody) // Pass the raw Buffer here
         .digest("hex");
 
-    return expectedSignature === razorpaySignature;
-
+    return expectedSignature === signature;
 };

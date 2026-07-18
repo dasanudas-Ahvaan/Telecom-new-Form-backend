@@ -81,14 +81,11 @@ const paymentCallback = async (
   status,
   webhook_signature,
   entireBody,
+  rawBody,
 ) => {
   const session = await mongoose.startSession();
   try {
-    const valid = verifySignature(
-      razorpay_order_id,
-      razorpay_payment_id,
-      webhook_signature,
-    );
+    const valid = verifySignature(rawBody, webhook_signature);
 
     if (!valid) {
       throw new Error("Invalid Signature");

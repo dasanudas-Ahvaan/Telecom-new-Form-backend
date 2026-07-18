@@ -36,7 +36,6 @@ const razorpayCallback = async (req, res) => {
       status,
     } = parsedBody.payload.payment.entity;
 
-    console.log("this is web sig", webhook_signature);
 
     const callbackResponse = await paymentCallback(
       razorpay_order_id,
@@ -44,6 +43,7 @@ const razorpayCallback = async (req, res) => {
       status,
       webhook_signature,
       parsedBody,
+      rawBody
     );
 
     const { success, message } = callbackResponse;
