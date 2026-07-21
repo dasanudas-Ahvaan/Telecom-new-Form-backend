@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
-const { VolunteerProgramResponseSchema } = require("./VolunteerProgramResponseSchema.model");
+const {
+  VolunteerProgramResponseSchema,
+} = require("./VolunteerProgramResponseSchema.model");
 
 const OnboardingFormSchema = new mongoose.Schema(
   {
@@ -11,6 +13,25 @@ const OnboardingFormSchema = new mongoose.Schema(
       required: true,
       enum: ["active", "inactive"],
       default: "active",
+    },
+    paymentType: {
+      donationType: {
+        type: String,
+        enum: ["once", "recurring", "free"],
+        default: "free",
+      },
+      razorpayOrderId: {
+        type: String,
+        required: false,
+      },
+      razorpayPaymentId: {
+        type: String,
+        required: false,
+      },
+      razorpaySubscriptionId: {
+        type: String,
+        required: false,
+      },
     },
     isVerified: {
       type: Boolean,

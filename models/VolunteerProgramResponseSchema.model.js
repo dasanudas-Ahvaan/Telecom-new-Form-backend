@@ -40,14 +40,14 @@ const VolunteerProgramResponseSchema = new mongoose.Schema(
       type: String,
     },
 
-    questions: [
-      {
-        id: String,
-        label: String,
-        type: String,
-        options: [String],
-      },
-    ],
+    // questions: [
+    //   {
+    //     id: String,
+    //     label: String,
+    //     type: String,
+    //     options: [String],
+    //   },
+    // ],
 
     answers: {
       type: Map,

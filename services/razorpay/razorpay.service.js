@@ -105,10 +105,19 @@ const paymentCallback = async (
     await session.withTransaction(async () => {
       try {
         // If duplicate payment arrives this insert will fail
+        console.log("helol, iam here", {
+          orderId: order._id.toString(),
+          razorpayOrderId: razorpay_order_id,
+          razorpayPaymentId: razorpay_payment_id,
+          razorpaySignature: webhook_signature,
+          status: status,
+          payload: entireBody,
+        });
+
         await Payment.create(
           [
             {
-              orderId: order._id,
+              orderId: order._id.toString(),
               razorpayOrderId: razorpay_order_id,
               razorpayPaymentId: razorpay_payment_id,
               razorpaySignature: webhook_signature,

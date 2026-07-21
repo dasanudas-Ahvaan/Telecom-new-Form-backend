@@ -69,6 +69,7 @@ exports.createMember = async (req, res) => {
       volunteerPrograms,
       aadhar,
       extraFields,
+      paymentType,
     } = req.body;
 
     const requiredFields = {
