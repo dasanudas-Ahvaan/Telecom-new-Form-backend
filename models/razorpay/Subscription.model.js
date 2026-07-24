@@ -1,20 +1,7 @@
-import mongoose from "mongoose";
+const mongoose = require("mongoose");
 
 const subscriptionSchema = new mongoose.Schema(
   {
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Member",
-      required: true,
-      index: true,
-    },
-
-    plan: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Plan",
-      required: true,
-    },
-
     razorpaySubscriptionId: {
       type: String,
       required: true,
@@ -106,4 +93,4 @@ const subscriptionSchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.model("Subscription", subscriptionSchema);
+module.exports =  mongoose.model("Subscription", subscriptionSchema);
