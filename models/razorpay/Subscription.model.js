@@ -40,6 +40,7 @@ const subscriptionSchema = new mongoose.Schema(
 
     totalCount: {
       type: Number,
+      required: true,
     },
 
     paidCount: {
@@ -89,7 +90,7 @@ const subscriptionSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  },
+  }
 );
 
-module.exports = mongoose.model("Subscription", subscriptionSchema);
+module.exports =  mongoose.model("Subscription", subscriptionSchema);

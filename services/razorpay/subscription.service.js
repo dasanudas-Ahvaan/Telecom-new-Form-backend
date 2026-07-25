@@ -68,7 +68,7 @@ class SubscriptionService {
     const razorpaySubscription = await razorpay.subscriptions.create({
       plan_id: planId,
 
-      // total_count: 12, // omit if want to charge indefinitely
+      total_count: 12, 
 
       quantity: 1,
 
