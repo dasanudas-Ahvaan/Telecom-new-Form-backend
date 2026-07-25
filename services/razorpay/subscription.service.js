@@ -1,6 +1,8 @@
 const razorpay = require("../../config/razorpay.js");
 const Plan = require("../../models/razorpay/Plan.model.js");
 const Subscription = require("../../models/razorpay/Subscription.model.js");
+const mongoose = require("mongoose");
+const verifySignatureUtils = require("../../utils/verifySignature.utils.js");
 
 class SubscriptionService {
   // =============================
@@ -74,7 +76,6 @@ class SubscriptionService {
 
     //updating in DB
     const subscription = await Subscription.create({
-
       razorpaySubscriptionId: razorpaySubscription.id,
 
       razorpayPlanId: planId,
@@ -141,85 +142,88 @@ class SubscriptionService {
   ) {
     const session = await mongoose.startSession();
     try {
-      const valid = verifySignature(rawBody, webhook_signature);
+      const valid = verifySignatureUtils(
+        rawBody,
+        webhook_signature,
+        "subscription",
+      );
 
-      if (!valid) {
-        throw new Error("Invalid Signature");
-      }
+      // if (!valid) {
+      //   throw new Error("Invalid Signature");
+      // }
 
-      const order = await Order.findOne({
-        razorpayOrderId: razorpay_order_id,
-      });
+      // const order = await Order.findOne({
+      //   razorpayOrderId: razorpay_order_id,
+      // });
 
-      if (!order) {
-        throw new Error("Order not found");
-      }
-      //idempotency guard
-      if (order.status === "success" || order.status === "failed") {
-        return { success: true, message: "Already processed" };
-      }
-      await session.withTransaction(async () => {
-        try {
-          // If duplicate payment arrives this insert will fail
-          console.log("helol, iam here", {
-            orderId: order._id.toString(),
-            razorpayOrderId: razorpay_order_id,
-            razorpayPaymentId: razorpay_payment_id,
-            razorpaySignature: webhook_signature,
-            status: status,
-            payload: entireBody,
-          });
+      // if (!order) {
+      //   throw new Error("Order not found");
+      // }
+      // //idempotency guard
+      // if (order.status === "success" || order.status === "failed") {
+      //   return { success: true, message: "Already processed" };
+      // }
+      // await session.withTransaction(async () => {
+      //   try {
+      //     // If duplicate payment arrives this insert will fail
+      //     console.log("helol, iam here", {
+      //       orderId: order._id.toString(),
+      //       razorpayOrderId: razorpay_order_id,
+      //       razorpayPaymentId: razorpay_payment_id,
+      //       razorpaySignature: webhook_signature,
+      //       status: status,
+      //       payload: entireBody,
+      //     });
 
-          await Payment.create(
-            [
-              {
-                orderId: order._id.toString(),
-                razorpayOrderId: razorpay_order_id,
-                razorpayPaymentId: razorpay_payment_id,
-                razorpaySignature: webhook_signature,
-                status: status,
-                payload: entireBody,
-              },
-            ],
-            { session },
-          );
-        } catch (err) {
-          if (err.code === 11000) {
-            // Already processed
-            throw new Error("PAYMENT_ALREADY_PROCESSED");
-          }
+      //     await Payment.create(
+      //       [
+      //         {
+      //           orderId: order._id.toString(),
+      //           razorpayOrderId: razorpay_order_id,
+      //           razorpayPaymentId: razorpay_payment_id,
+      //           razorpaySignature: webhook_signature,
+      //           status: status,
+      //           payload: entireBody,
+      //         },
+      //       ],
+      //       { session },
+      //     );
+      //   } catch (err) {
+      //     if (err.code === 11000) {
+      //       // Already processed
+      //       throw new Error("PAYMENT_ALREADY_PROCESSED");
+      //     }
 
-          throw err;
-        }
+      //     throw err;
+      //   }
 
-        await Order.updateOne(
-          {
-            _id: order._id,
-          },
-          {
-            $set: {
-              status: status === "captured" ? "success" : "failed",
-            },
-          },
-          {
-            session,
-          },
-        );
+      //   await Order.updateOne(
+      //     {
+      //       _id: order._id,
+      //     },
+      //     {
+      //       $set: {
+      //         status: status === "captured" ? "success" : "failed",
+      //       },
+      //     },
+      //     {
+      //       session,
+      //     },
+      //   );
 
-        // ---------------------------
-        // Put your business logic here
-        //
-        // create subscription
-        // send email
-        // generate invoice
-        // etc.
-        // ---------------------------
-      });
+      //   // ---------------------------
+      //   // Put your business logic here
+      //   //
+      //   // create subscription
+      //   // send email
+      //   // generate invoice
+      //   // etc.
+      //   // ---------------------------
+      // });
 
       return {
         success: true,
-        message: "Payment processed",
-        data: { status: status },
+        message: "Signature validated",
       };
     } catch (err) {
       if (err.message === "PAYMENT_ALREADY_PROCESSED") {
