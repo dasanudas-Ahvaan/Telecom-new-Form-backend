@@ -170,7 +170,7 @@ class SubscriptionService {
                   razorpayInvoiceId: payment.invoice_id,
                   razorpaySignature: webhook_signature,
                   status: payment.status === "captured" ? "captured" : "failed",
-                  Member: payment.email || subscription.customer_email,
+                  MemberEmail: payment.email || subscription.customer_email,
                   payload: parsedBody,
                 },
               ],

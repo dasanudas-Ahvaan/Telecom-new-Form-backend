@@ -6,7 +6,7 @@ const paymentSchema = new mongoose.Schema(
       type: String,
       required: false,
     },
-    Member: {
+    MemberEmail: {
       type: String,
       required: false,
     },
