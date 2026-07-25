@@ -3,6 +3,7 @@ const Plan = require("../../models/razorpay/Plan.model.js");
 const Subscription = require("../../models/razorpay/Subscription.model.js");
 const mongoose = require("mongoose");
 const verifySignatureUtils = require("../../utils/verifySignature.utils.js");
+const Payment = require("../../models/razorpay/Payment.model.js");
 
 class SubscriptionService {
   // =============================
@@ -67,7 +68,7 @@ class SubscriptionService {
     const razorpaySubscription = await razorpay.subscriptions.create({
       plan_id: planId,
 
-      total_count: 12,
+      // total_count: 12, // omit if want to charge indefinitely
 
       quantity: 1,
 
@@ -132,14 +133,7 @@ class SubscriptionService {
     }
   }
 
-  async subscriptionCallback(
-    razorpay_order_id,
-    razorpay_payment_id,
-    status,
-    webhook_signature,
-    entireBody,
-    rawBody,
-  ) {
+  async subscriptionCallback(webhook_signature, parsedBody, rawBody) {
     const session = await mongoose.startSession();
     try {
       const valid = verifySignatureUtils(
@@ -148,92 +142,134 @@ class SubscriptionService {
         "subscription",
       );
 
-      // if (!valid) {
-      //   throw new Error("Invalid Signature");
-      // }
+      if (!valid) {
+        throw new Error("Invalid Signature");
+      }
 
-      // const order = await Order.findOne({
-      //   razorpayOrderId: razorpay_order_id,
-      // });
+      const { event } = parsedBody;
+      const subscription = parsedBody.payload.subscription.entity;
+      const payment = parsedBody.payload.payment?.entity; // Optional chaining in case payment object is missing in some events
 
-      // if (!order) {
-      //   throw new Error("Order not found");
-      // }
-      // //idempotency guard
-      // if (order.status === "success" || order.status === "failed") {
-      //   return { success: true, message: "Already processed" };
-      // }
-      // await session.withTransaction(async () => {
-      //   try {
-      //     // If duplicate payment arrives this insert will fail
-      //     console.log("helol, iam here", {
-      //       orderId: order._id.toString(),
-      //       razorpayOrderId: razorpay_order_id,
-      //       razorpayPaymentId: razorpay_payment_id,
-      //       razorpaySignature: webhook_signature,
-      //       status: status,
-      //       payload: entireBody,
-      //     });
+      await session.withTransaction(async () => {
+        // 1. Idempotency Check for Payment
+        if (
+          payment &&
+          (payment.status === "captured" || payment.status === "failed")
+        ) {
+          const existingPayment = await Payment.findOne({
+            razorpayPaymentId: payment.id,
+          }).session(session);
 
-      //     await Payment.create(
-      //       [
-      //         {
-      //           orderId: order._id.toString(),
-      //           razorpayOrderId: razorpay_order_id,
-      //           razorpayPaymentId: razorpay_payment_id,
-      //           razorpaySignature: webhook_signature,
-      //           status: status,
-      //           payload: entireBody,
-      //         },
-      //       ],
-      //       { session },
-      //     );
-      //   } catch (err) {
-      //     if (err.code === 11000) {
-      //       // Already processed
-      //       throw new Error("PAYMENT_ALREADY_PROCESSED");
-      //     }
+          if (!existingPayment) {
+            await Payment.create(
+              [
+                {
+                  razorpaySubscriptionId: subscription.id,
+                  razorpayOrderId: payment.order_id,
+                  razorpayPaymentId: payment.id,
+                  razorpayInvoiceId: payment.invoice_id,
+                  razorpaySignature: webhook_signature,
+                  status: payment.status === "captured" ? "captured" : "failed",
+                  Member: payment.email || subscription.customer_email,
+                  payload: parsedBody,
+                },
+              ],
+              { session },
+            );
+          }
+        }
 
-      //     throw err;
-      //   }
+        // 2. Fetch current subscription to guard against out-of-order status regressions
+        const existingSub = await Subscription.findOne({
+          razorpaySubscriptionId: subscription.id,
+        }).session(session);
 
-      //   await Order.updateOne(
-      //     {
-      //       _id: order._id,
-      //     },
-      //     {
-      //       $set: {
-      //         status: status === "captured" ? "success" : "failed",
-      //       },
-      //     },
-      //     {
-      //       session,
-      //     },
-      //   );
+        // Define status priority to avoid a 'halted' or 'pending' state overriding 'active' improperly
+        const statusHierarchy = {
+          created: 1,
+          authenticated: 2,
+          pending: 3,
+          active: 4,
+          halted: 5,
+          completed: 6,
+          cancelled: 7,
+          expired: 8,
+        };
 
-      //   // ---------------------------
-      //   // Put your business logic here
-      //   //
-      //   // create subscription
-      //   // send email
-      //   // generate invoice
-      //   // etc.
-      //   // ---------------------------
-      // });
+        const incomingStatusWeight = statusHierarchy[subscription.status] || 0;
+        const currentStatusWeight = existingSub
+          ? statusHierarchy[existingSub.status] || 0
+          : 0;
+
+        // Construct update payload dynamically with all key subscription attributes
+        const updateData = {
+          status: subscription.status,
+          razorpayCustomerId: subscription.customer_id,
+          quantity: subscription.quantity,
+          totalCount: subscription.total_count,
+          paidCount: subscription.paid_count,
+          remainingCount: subscription.remaining_count,
+          customerNotify: subscription.customer_notify,
+          authAttempts: subscription.auth_attempts,
+          hasScheduledChanges: subscription.has_scheduled_changes,
+          currentStart: subscription.current_start
+            ? new Date(subscription.current_start * 1000)
+            : null,
+          currentEnd: subscription.current_end
+            ? new Date(subscription.current_end * 1000)
+            : null,
+          startAt: subscription.start_at
+            ? new Date(subscription.start_at * 1000)
+            : null,
+          endAt: subscription.end_at
+            ? new Date(subscription.end_at * 1000)
+            : null,
+          chargeAt: subscription.charge_at
+            ? new Date(subscription.charge_at * 1000)
+            : null,
+          expireBy: subscription.expire_by
+            ? new Date(subscription.expire_by * 1000)
+            : null,
+          endedAt: subscription.ended_at
+            ? new Date(subscription.ended_at * 1000)
+            : null,
+          shortUrl: subscription.short_url,
+        };
+
+        // Only update status if it progresses or if it's an explicit terminal status change
+        if (
+          incomingStatusWeight >= currentStatusWeight ||
+          ["cancelled", "completed", "expired", "halted"].includes(
+            subscription.status,
+          )
+        ) {
+          await Subscription.updateOne(
+            { razorpaySubscriptionId: subscription.id },
+            { $set: updateData },
+            { session, upsert: true }, // Upsert handles cases where sub creation record missed saving initially
+          );
+        } else {
+          // If status shouldn't change backward, update metrics/counters anyway without changing status
+          delete updateData.status;
+          await Subscription.updateOne(
+            { razorpaySubscriptionId: subscription.id },
+            { $set: updateData },
+            { session },
+          );
+        }
+      });
 
       return {
         success: true,
-        message: "Signature validated",
+        message: "Webhook processed successfully",
       };
     } catch (err) {
-      if (err.message === "PAYMENT_ALREADY_PROCESSED") {
+      if (err.code === 11000) {
         return {
           success: true,
-          message: "Payment already processed",
-          data: { status: status },
+          message: "Event already processed idempotently (Duplicate key)",
         };
       }
-
       throw err;
     } finally {
       session.endSession();

@@ -98,62 +98,71 @@ const paymentCallback = async (
     if (!order) {
       throw new Error("Order not found");
     }
-    //idempotency guard
+
+    // Fast-exit idempotency guard: check if order is already settled
     if (order.status === "success" || order.status === "failed") {
       return { success: true, message: "Already processed" };
     }
+
     await session.withTransaction(async () => {
-      try {
-        // If duplicate payment arrives this insert will fail
-        console.log("helol, iam here", {
-          orderId: order._id.toString(),
-          razorpayOrderId: razorpay_order_id,
+      // 1. Idempotency Check for Payment via Find-Before-Create
+      if (razorpay_payment_id) {
+        const existingPayment = await Payment.findOne({
           razorpayPaymentId: razorpay_payment_id,
-          razorpaySignature: webhook_signature,
-          status: status,
-          payload: entireBody,
-        });
+        }).session(session);
 
-        await Payment.create(
-          [
-            {
-              orderId: order._id.toString(),
-              razorpayOrderId: razorpay_order_id,
-              razorpayPaymentId: razorpay_payment_id,
-              razorpaySignature: webhook_signature,
-              status: status,
-              payload: entireBody,
-            },
-          ],
-          { session },
-        );
-      } catch (err) {
-        if (err.code === 11000) {
-          // Already processed
-          throw new Error("PAYMENT_ALREADY_PROCESSED");
+        if (!existingPayment) {
+          await Payment.create(
+            [
+              {
+                orderId: order._id.toString(),
+                razorpayOrderId: razorpay_order_id,
+                razorpayPaymentId: razorpay_payment_id,
+                razorpaySignature: webhook_signature,
+                status: status,
+                payload: entireBody,
+              },
+            ],
+            { session },
+          );
         }
-
-        throw err;
       }
 
-      await Order.updateOne(
-        {
-          _id: order._id,
-        },
-        {
-          $set: {
-            status: status === "captured" ? "success" : "failed",
-          },
-        },
-        {
-          session,
-        },
+      // 2. Re-fetch order inside transaction with a lock/check to prevent race conditions
+      const currentOrder = await Order.findOne({ _id: order._id }).session(
+        session,
       );
+
+      const statusHierarchy = {
+        created: 1,
+        failed: 2,
+        success: 3,
+      };
+
+      const incomingStatusWeight =
+        statusHierarchy[status === "captured" ? "success" : "failed"] || 0;
+      const currentStatusWeight = statusHierarchy[currentOrder.status] || 0;
+
+      // Only update if incoming status weight is higher or if it's an explicit valid state transition
+      if (incomingStatusWeight >= currentStatusWeight) {
+        await Order.updateOne(
+          {
+            _id: order._id,
+          },
+          {
+            $set: {
+              status: status === "captured" ? "success" : "failed",
+            },
+          },
+          {
+            session,
+          },
+        );
+      }
 
       // ---------------------------
       // Put your business logic here
       //
-      // create subscription
       // send email
       // generate invoice
       // etc.
@@ -162,11 +171,11 @@ const paymentCallback = async (
 
     return {
       success: true,
-      message: "Payment processed",
+      message: "Payment processed check status for confirmation",
       data: { status: status },
     };
   } catch (err) {
-    if (err.message === "PAYMENT_ALREADY_PROCESSED") {
+    if (err.code === 11000 || err.message === "PAYMENT_ALREADY_PROCESSED") {
       return {
         success: true,
         message: "Payment already processed",

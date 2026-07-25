@@ -82,23 +82,15 @@ class SubscriptionController {
       const webhook_signature = req.headers["x-razorpay-signature"];
 
       const parsedBody = JSON.parse(rawBody.toString());
-      const {
-        id: razorpay_payment_id,
-        order_id: razorpay_order_id,
-        status,
-      } = { id: "test", order_id: "test order id", status: "test status" };
 
       const callbackResponse = await subscriptionService.subscriptionCallback(
-        razorpay_order_id || "",
-        razorpay_payment_id || "",
-        status || "",
         webhook_signature,
         parsedBody,
         rawBody,
       );
       const webhrec = webhook_signature ?? "not rece";
       const { success, message } = callbackResponse;
-      console.log(JSON.stringify(parsedBody), webhook_signature, );
+      console.log(JSON.stringify(parsedBody), webhook_signature);
 
       return res.status(200).json({
         success,
