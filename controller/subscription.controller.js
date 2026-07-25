@@ -77,6 +77,30 @@ class SubscriptionController {
       });
     }
   }
+
+  async subscriptionCallback(req, res) {
+    try {
+      const rawBody = req.body;
+      const webhook_signature = req.headers["x-razorpay-signature"];
+
+      const parsedBody = JSON.parse(rawBody.toString());
+      // const callbackResponse = await subscriptionService.subscriptionCallback();
+      const webhrec = webhook_signature?'yes rece':'not rece'
+      // const { success, message } = callbackResponse;
+
+      return res.status(200).json({
+        success:true,
+        message:'tested fine',
+        data: parsedBody,
+        webhrec
+      });
+    } catch (err) {
+      return res.status(500).json({
+        success: false,
+        message: err.message,
+      });
+    }
+  }
 }
 
 module.exports = new SubscriptionController();

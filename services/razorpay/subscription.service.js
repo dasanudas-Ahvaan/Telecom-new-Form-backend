@@ -130,6 +130,111 @@ class SubscriptionService {
       throw error;
     }
   }
+
+  async subscriptionCallback(
+    razorpay_order_id,
+    razorpay_payment_id,
+    status,
+    webhook_signature,
+    entireBody,
+    rawBody,
+  ) {
+    const session = await mongoose.startSession();
+    try {
+      const valid = verifySignature(rawBody, webhook_signature);
+
+      if (!valid) {
+        throw new Error("Invalid Signature");
+      }
+
+      const order = await Order.findOne({
+        razorpayOrderId: razorpay_order_id,
+      });
+
+      if (!order) {
+        throw new Error("Order not found");
+      }
+      //idempotency guard
+      if (order.status === "success" || order.status === "failed") {
+        return { success: true, message: "Already processed" };
+      }
+      await session.withTransaction(async () => {
+        try {
+          // If duplicate payment arrives this insert will fail
+          console.log("helol, iam here", {
+            orderId: order._id.toString(),
+            razorpayOrderId: razorpay_order_id,
+            razorpayPaymentId: razorpay_payment_id,
+            razorpaySignature: webhook_signature,
+            status: status,
+            payload: entireBody,
+          });
+
+          await Payment.create(
+            [
+              {
+                orderId: order._id.toString(),
+                razorpayOrderId: razorpay_order_id,
+                razorpayPaymentId: razorpay_payment_id,
+                razorpaySignature: webhook_signature,
+                status: status,
+                payload: entireBody,
+              },
+            ],
+            { session },
+          );
+        } catch (err) {
+          if (err.code === 11000) {
+            // Already processed
+            throw new Error("PAYMENT_ALREADY_PROCESSED");
+          }
+
+          throw err;
+        }
+
+        await Order.updateOne(
+          {
+            _id: order._id,
+          },
+          {
+            $set: {
+              status: status === "captured" ? "success" : "failed",
+            },
+          },
+          {
+            session,
+          },
+        );
+
+        // ---------------------------
+        // Put your business logic here
+        //
+        // create subscription
+        // send email
+        // generate invoice
+        // etc.
+        // ---------------------------
+      });
+
+      return {
+        success: true,
+        message: "Payment processed",
+        data: { status: status },
+      };
+    } catch (err) {
+      if (err.message === "PAYMENT_ALREADY_PROCESSED") {
+        return {
+          success: true,
+          message: "Payment already processed",
+          data: { status: status },
+        };
+      }
+
+      throw err;
+    } finally {
+      session.endSession();
+    }
+  }
 }
 
 module.exports = new SubscriptionService();
