@@ -40,6 +40,15 @@ app.use(
 );
 app.use(logger("dev"));
 
+// strict HSTS + CSP
+app.use((req, res, next) => {
+  res.set({
+    "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
+    "Content-Security-Policy": "default-src 'self'; script-src 'self' https://checkout.razorpay.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:;"
+  });
+  next();
+});
+
 app.post(
   "/api/pay/webhook/razorpay",
   express.raw({ type: "application/json" }),

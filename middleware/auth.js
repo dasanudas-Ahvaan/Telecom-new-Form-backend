@@ -12,7 +12,7 @@ function generateToken(user) {
     throw new Error("JWT_SECRET is missing in environment variables");
   }
   return jwt.sign(payload, JWT_SECRET, {
-    expiresIn: "20m",
+    expiresIn: "1d",
   });
 }
 
