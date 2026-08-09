@@ -29,20 +29,20 @@ const loginController = async (req, res) => {
     const { token, data } = await login(email, password);
     const csrfToken = crypto.randomBytes(32).toString("hex");
     res.cookie("token", token, {
-      httpOnly: true, // Prevents XSS (JavaScript cannot read this)
+      httpOnly: environment === "production", // Prevents XSS (JavaScript cannot read this)
       secure: environment === "production", // Only sent over HTTPS (use false for local dev)
       sameSite: "Strict", // Prevents CSRF
-      maxAge: 1000 * 60 , // 1 hour in milliseconds
+      maxAge: 1000 * 60 * 60, // 1 hour in milliseconds
     });
     res.cookie("XSRF-TOKEN", csrfToken, {
       secure: process.env.NODE_ENV === "production",
       sameSite: "Strict",
-      maxAge: 1000  * 60,
+      maxAge: 1000 * 60 * 60,
     });
     return res
       .status(200)
       .json(
-        successJsonResponse(true, "Logged in successfully", data, { token }),
+        successJsonResponse(true, "Logged in successfully", data),
       );
   } catch (error) {
     if (
