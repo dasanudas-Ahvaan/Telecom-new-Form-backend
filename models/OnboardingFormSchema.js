@@ -66,7 +66,7 @@ const OnboardingFormSchema = new mongoose.Schema(
       lowercase: true,
       enum: ["male", "female", "other"],
     },
-    dateOfBirth: { type: Date, required: true },
+    dateOfBirth: { type: String, required: true, match:/^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\d{4}$/ },
     education: { type: String, required: true, trim: true },
     profession: { type: String, required: true, trim: true },
     addressLine1: { type: String, required: true, trim: true, maxlength: 200 },
