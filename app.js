@@ -22,6 +22,7 @@ mongoose
   });
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS.split(",");
+app.disable('x-powered-by')
 
 app.use(
   cors({
@@ -44,7 +45,8 @@ app.use(logger("dev"));
 app.use((req, res, next) => {
   res.set({
     "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
-    "Content-Security-Policy": "default-src 'self'; script-src 'self' https://checkout.razorpay.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:;"
+    "Content-Security-Policy":
+      "default-src 'self'; script-src 'self' https://checkout.razorpay.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:;",
   });
   next();
 });
@@ -69,6 +71,29 @@ app.use("/api", routes);
 app.get("/", (req, res) => {
   res.status(200).json({
     message: `Jai Shri Ram! Server is running on port ${PORT}`,
+  });
+});
+app.use((req, res, next) => {
+  res.status(404).json({
+    success: false,
+    message: "Endpoint not found",
+  });
+});
+
+//to avoid stack trace
+app.use((err, req, res, next) => {
+  console.error("Server Error:", err.stack);
+
+  if (err.message && err.message.includes("CORS")) {
+    return res.status(403).json({
+      success: false,
+      message: "Origin not allowed",
+    });
+  }
+
+  return res.status(500).json({
+    success: false,
+    message: "Internal Server Error",
   });
 });
 
