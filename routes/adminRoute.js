@@ -9,14 +9,16 @@ const {
 const { verifyToken } = require("../middleware/auth");
 const { withAudit } = require("../utils/withAudit");
 const verifyCSRF = require("../middleware/csrfCheck");
+const { validateSuperUser } = require("../middleware/superUserValidator");
 
 // All routes require authentication
 router.use(verifyCSRF);
 router.use(verifyToken);
+router.use(validateSuperUser);
 const entity = "Super_User";
 
 router.post(
-  "/create/:id",
+  "/create/",
   withAudit(createAdminController, {
     action: "CREATE_ADMIN",
     entity,
@@ -24,7 +26,7 @@ router.post(
 );
 
 router.delete(
-  "/remove/:id/:adminId",
+  "/remove/:adminId",
   withAudit(removeAdminController, {
     action: "DELETE_ADMIN",
     entity,
@@ -32,12 +34,12 @@ router.delete(
 );
 
 router.put(
-  "/reset-password/:id",
+  "/reset-password/",
   withAudit(resetAdminPasswordController, {
     action: "RESET_PASS",
     entity,
   }),
 );
-router.get("/list/:id", getAllAdmins);
+router.get("/list/", getAllAdmins);
 
 module.exports = router;

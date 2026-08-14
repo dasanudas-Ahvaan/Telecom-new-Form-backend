@@ -92,8 +92,6 @@ const logoutController = async (req, res) => {
 };
 
 const createAdminController = async (req, res) => {
-  const accessError = validateSuperUser(req, res);
-  if (accessError) return;
   const { name, email, password } = req.body;
   const response = await createAdmin(name, email, password);
 
@@ -101,9 +99,6 @@ const createAdminController = async (req, res) => {
 };
 
 const removeAdminController = async (req, res) => {
-  const accessError = validateSuperUser(req, res);
-  if (accessError) return;
-
   const { adminId } = req.params;
   const { email: userEmail } = req.user;
 
@@ -114,9 +109,6 @@ const removeAdminController = async (req, res) => {
 
 // const removeAdminController = async (req, res) => {
 //   try {
-//     const accessError = validateSuperUser(req, res);
-//     if (accessError) return;
-
 //     const { adminId } = req.params;
 //     const { email: userEmail } = req.user;
 
@@ -138,9 +130,6 @@ const removeAdminController = async (req, res) => {
 // };
 
 const resetAdminPasswordController = async (req, res) => {
-  const accessError = validateSuperUser(req, res);
-  if (accessError) return;
-
   const { adminId, newPassword } = req.body;
   const userEmail = req.user.email;
 
@@ -151,9 +140,6 @@ const resetAdminPasswordController = async (req, res) => {
 
 const getAllAdmins = async (req, res) => {
   try {
-    const accessError = validateSuperUser(req, res);
-    if (accessError) return;
-
     const admins = await Admin.find({ role: "admin" }).select("-password -__v");
 
     return res.status(200).json({

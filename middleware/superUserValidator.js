@@ -1,18 +1,23 @@
-function validateSuperUser(req, res) {
-  const idFromToken = req.user.id;
-  const idFromParam = req.params.id;
-  const role = req.user.role;
-  if (idFromToken !== idFromParam) {
-    throw new Error(
-      "Access denied. You are not authorized to modify this user's team.",
-    );
-  }
+const validateSuperUser = (req, res, next) => {
+  try {
+    // 1. Ensure user exists (attached by verifyToken)
+    if (!req.user) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
 
-  if (role !== "super_user") {
-    throw new Error("Access denied. Unauthorized.");
-  }
+    // 2. Check the role directly from the secure JWT payload
+    if (req.user.role !== "super_user") {
+      return res.status(403).json({ 
+        success: false, 
+        message: "Access denied. Super user privileges required." 
+      });
+    }
 
-  return null;
-}
+    // If valid, move on to the controller
+    next();
+  } catch (error) {
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
 
 module.exports = { validateSuperUser };

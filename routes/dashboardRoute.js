@@ -29,7 +29,7 @@ router.post("/login", loginController);
 router.post("/logout", logoutController);
 
 router
-  .route("/:id")
+  .route("/")
   .get(verifyCSRF, verifyToken, getAllMembers)
   .put(
     verifyCSRF,
