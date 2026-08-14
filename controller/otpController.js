@@ -45,15 +45,19 @@ const sendOTP = async (req, res) => {
     });
 
     const response = await sendMail(
+      "otpVerification",
       email,
-      "Your OTP Verification Code",
-      `<h3>Your OTP is: <b>${otp}</b></h3>`
+      `Your OTP Verification Code ${otp}`,
+      { otpCode: otp },
     );
 
     res.status(200).json({
       ...(response.success
         ? { success: true, message: "OTP sent to email" }
-        : { success: true, message: "OTP generated but failed to send OTP to email" }),
+        : {
+            success: true,
+            message: "OTP generated but failed to send OTP to email",
+          }),
     });
   } catch (error) {
     console.log("OTP Error:", error);

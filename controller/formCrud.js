@@ -374,21 +374,10 @@ exports.createMember = async (req, res) => {
 
   try {
     const emailSent = await sendMail(
+      "welcomeEmail",
       req.body.email,
       "🚩 आह्वान-धर्म रक्षा समिति में आपका स्वागत है!",
-      `<div style="text-align:center; font-family: 'Noto Sans Devanagari', sans-serif; background-color:#fff8e1; padding:20px;">
-    <img src="cid:logoImage"
-         alt="आह्वान-धर्म रक्षा समिति"
-         style="max-width:100%; border-radius:10px;"/>
-    <h2 style="color:#d32f2f; margin-top:20px;">🙏 आपका हार्दिक स्वागत है 🙏</h2>
-   <p style="font-size:16px; color:#444;">
-  <b>${req.body.fullName} जी,</b>
-  <br><br>
-  धर्म रक्षा और सेवा के इस पुनीत अभियान में स्वेच्छा से जुड़ने के लिए **हम हृदय से आपके आभारी हैं**।
-  आपका यह समर्पित सहयोग, सनातन धर्म और राष्ट्र की सेवा के हमारे सामूहिक लक्ष्य को एक नई दिशा और **अभूतपूर्व बल** प्रदान करता है। हम आपके सक्रिय योगदान की प्रतीक्षा कर रहे हैं।
-</p>
-    <p style="margin-top:20px; color:#555;">🚩 जय श्री राम!<br>— Team आह्वान-धर्म रक्षा समिति</p>
-  </div>`,
+      { fullName: req.body.fullName },
     );
 
     await EmailOTP.deleteOne({ email: req.body.email });

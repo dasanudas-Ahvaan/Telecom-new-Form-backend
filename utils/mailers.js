@@ -1,8 +1,14 @@
 const nodemailer = require("nodemailer");
+const emailTemplates = require("../data/mailDraft");
 require("dotenv").config();
 
-const sendMail = async (to, subject, html) => {
+const sendMail = async (templateKey, recipientEmail, subject, data) => {
   try {
+    if (!emailTemplates[templateKey]) {
+      throw new Error(`Template '${templateKey}' not found!`);
+    }
+    const htmlContent = emailTemplates[templateKey](data);
+
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -13,21 +19,14 @@ const sendMail = async (to, subject, html) => {
 
     const mailOptions = {
       from: process.env.EMAIL_USER,
-      to,
-      subject,
-      html,
-      attachments: [
-        {
-          filename: "logo.jpg",
-          path: "./assets/logo.jpg",
-          cid: "logoImage",
-        },
-      ],
+      to: recipientEmail,
+      subject: subject,
+      html: htmlContent,
     };
 
     await transporter.sendMail(mailOptions);
 
-    console.log("✅ Email sent to:", to);
+    console.log("✅ Email sent to:", recipientEmail);
     return { success: true, message: "Email sent successfully" };
   } catch (error) {
     console.error("❌ Email Error:", error.message);
