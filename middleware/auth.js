@@ -3,11 +3,10 @@ const jwt = require("jsonwebtoken");
 const JWT_SECRET = process.env.JWT_TOKEN;
 
 function generateToken(user) {
-  const payload = { id: user._id, email: user.email };
-
-  if (user.role === "super_user") {
-    payload.role = "super_user";
-  }
+  const payload = {
+    id: user._id,
+    role: user.role || "admin",
+  };
   if (!JWT_SECRET) {
     throw new Error("JWT_SECRET is missing in environment variables");
   }
@@ -38,7 +37,7 @@ function verifyToken(req, res, next) {
 const generateRefreshToken = (user) => {
   // Use a separate secret environment variable for refresh tokens
   const secret = process.env.REFRESH_TOKEN_SECRET;
-  
+
   if (!secret) {
     throw new Error("REFRESH_TOKEN_SECRET environment variable is not defined");
   }
@@ -46,7 +45,7 @@ const generateRefreshToken = (user) => {
   // Payload should be minimal (typically just the user ID and token version/type)
   const payload = {
     id: user._id,
-    type: "refresh"
+    type: "refresh",
   };
 
   // Sign the token with a 7-day expiration

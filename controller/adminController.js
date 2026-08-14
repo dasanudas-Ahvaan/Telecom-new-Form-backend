@@ -131,9 +131,9 @@ const removeAdminController = async (req, res) => {
 
 const resetAdminPasswordController = async (req, res) => {
   const { adminId, newPassword } = req.body;
-  const userEmail = req.user.email;
+  const userId = req.user.id;
 
-  const response = await resetPassword(adminId, newPassword, userEmail);
+  const response = await resetPassword(adminId, newPassword, userId);
 
   return response;
 };

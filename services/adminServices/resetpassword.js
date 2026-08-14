@@ -1,6 +1,6 @@
 const { Admin } = require("../../models/adminSchema");
 
-const resetPassword = async (adminId, newPassword, userEmail) => {
+const resetPassword = async (adminId, newPassword, userId) => {
   try {
     if (!adminId) {
       throw new Error("Missing credentials");
@@ -16,7 +16,7 @@ const resetPassword = async (adminId, newPassword, userEmail) => {
     await admin.save();
     return {
       response: { success: true, message: "Password reset successfully" },
-      metadata: `password was reset for ${admin.email} by ${userEmail}`,
+      metadata: `password was reset for ${admin.email} by ${userId}`,
     };
   } catch (error) {
     throw new Error(error.message);
