@@ -3,6 +3,7 @@ const {
   testAdmin,
   loginController,
   logoutController,
+  rotateRefreshToken,
 } = require("../controller/adminController");
 const {
   getAllMembers,
@@ -21,6 +22,8 @@ router.get("/me", verifyToken, (req, res) => {
   const { id: _id, role, email } = req.user;
   res.status(200).json({ success: true, data: { _id, role } });
 });
+
+router.post("/refresh", rotateRefreshToken);
 
 router.post("/login", loginController);
 router.post("/logout", logoutController);

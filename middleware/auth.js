@@ -12,7 +12,7 @@ function generateToken(user) {
     throw new Error("JWT_SECRET is missing in environment variables");
   }
   return jwt.sign(payload, JWT_SECRET, {
-    expiresIn: "1d",
+    expiresIn: "15m",
   });
 }
 
@@ -35,4 +35,24 @@ function verifyToken(req, res, next) {
   }
 }
 
-module.exports = { generateToken, verifyToken };
+const generateRefreshToken = (user) => {
+  // Use a separate secret environment variable for refresh tokens
+  const secret = process.env.REFRESH_TOKEN_SECRET;
+  
+  if (!secret) {
+    throw new Error("REFRESH_TOKEN_SECRET environment variable is not defined");
+  }
+
+  // Payload should be minimal (typically just the user ID and token version/type)
+  const payload = {
+    id: user._id,
+    type: "refresh"
+  };
+
+  // Sign the token with a 7-day expiration
+  return jwt.sign(payload, secret, {
+    expiresIn: "7h",
+  });
+};
+
+module.exports = { generateToken, verifyToken, generateRefreshToken };

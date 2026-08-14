@@ -15,5 +15,3 @@ const verifyCSRF = (req, res, next) => {
 };
 
 module.exports = verifyCSRF;
-// Apply to your app
-// app.use(verifyCSRF);
