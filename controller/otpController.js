@@ -14,9 +14,10 @@ const sendOTP = async (req, res) => {
     }
     const existingMember = await Member.findOne({ email });
     if (existingMember) {
-      return res.status(400).json({
+      return res.status(200).json({
         success: false,
-        message: "This email is already registered",
+        message:
+          "If the email provided is valid and unregistered, an OTP has been sent.",
       });
     }
 
