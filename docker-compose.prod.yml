@@ -20,7 +20,7 @@ services:
     build: .
     container_name: prod_container_telecom-form-ahvaan
     ports:
-      - "${APP_PORT_INSIDE_LOCAL}:${APP_PORT_INSIDE_DOCKER}"
+      - "127.0.0.1:${APP_PORT_INSIDE_LOCAL}:${APP_PORT_INSIDE_DOCKER}"
     restart: always
 
     env_file:
