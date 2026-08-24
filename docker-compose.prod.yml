@@ -1,0 +1,31 @@
+services:
+  prod_svc_mongo_db:
+    container_name: prod_container_db
+    image: mongo:latest
+    restart: always
+    healthcheck:
+      test:
+        ["CMD-SHELL", 'mongosh --eval ''db.adminCommand("ping")'' || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    env_file:
+      - .env.prod
+    volumes:
+      - prod_vol_mongo_data:/data/db
+
+  backend:
+    build: .
+    container_name: prod_container_telecom-form-ahvaan
+    ports:
+      - "127.0.0.1:${APP_PORT_INSIDE_LOCAL}:${APP_PORT_INSIDE_DOCKER}"
+    restart: always
+
+    env_file:
+      - .env.prod
+    depends_on:
+      prod_svc_mongo_db:
+        condition: service_healthy
+        
+volumes:
+  prod_vol_mongo_data:
