@@ -2,8 +2,6 @@ services:
   prod_svc_mongo_db:
     container_name: prod_container_db
     image: mongo:latest
-    ports:
-      - "127.0.0.1:27017:27017"
     restart: always
     healthcheck:
       test:
