@@ -18,7 +18,7 @@ services:
 
   backend:
     build: .
-    container_name: telecom-form-ahvaan
+    container_name: prod_container_telecom-form-ahvaan
     ports:
       - "${APP_PORT_INSIDE_LOCAL}:${APP_PORT_INSIDE_DOCKER}"
     restart: always
