@@ -68,7 +68,7 @@ class SubscriptionService {
     const razorpaySubscription = await razorpay.subscriptions.create({
       plan_id: planId,
 
-      total_count: 12, 
+      total_count: 12*80, 
 
       quantity: 1,
 
