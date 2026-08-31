@@ -1,3 +1,5 @@
+name: test_telecom_backend
+
 services:
   backend:
     build: .
