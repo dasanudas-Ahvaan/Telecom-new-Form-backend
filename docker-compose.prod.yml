@@ -1,5 +1,3 @@
-name: prod_telecom_backend
-
 services:
   prod_svc_mongo_db:
     container_name: prod_container_db
