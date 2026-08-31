@@ -1,0 +1,15 @@
+services:
+  backend:
+    build: .
+    container_name: test_api
+    ports:
+      - "127.0.0.1:${APP_PORT_INSIDE_LOCAL}:3000"
+    restart: always
+
+    env_file:
+      - .env.test
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - .:/usr/src/app
+
